@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="小记录">
+  <meta name="theme-color" content="#FFB6C1">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/icon.svg">
+  <title>小记录</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #FFF5F5;
+      color: #333;
+      min-height: 100vh;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* ===== 通用 ===== */
+    .page { display: none; padding: 16px; padding-bottom: 80px; max-width: 500px; margin: 0 auto; }
+    .page.active { display: block; }
+    .header { 
+      text-align: center; padding: 20px 0 16px;
+      font-size: 22px; font-weight: 700; color: #E91E63;
+    }
+    .header small { display: block; font-size: 13px; color: #999; font-weight: 400; margin-top: 4px; }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 12px 24px; border: none; border-radius: 12px;
+      font-size: 16px; font-weight: 600; cursor: pointer;
+      transition: all 0.2s; -webkit-tap-highlight-color: transparent;
+    }
+    .btn:active { transform: scale(0.96); }
+    .btn-primary { background: #E91E63; color: white; }
+    .btn-primary:active { background: #C2185B; }
+    .btn-success { background: #4CAF50; color: white; }
+    .btn-success:active { background: #388E3C; }
+    .btn-danger { background: #f44336; color: white; }
+    .btn-danger:active { background: #D32F2F; }
+    .btn-outline { background: white; color: #E91E63; border: 2px solid #E91E63; }
+    .btn-block { display: flex; width: 100%; }
+    .btn-lg { padding: 16px 32px; font-size: 18px; border-radius: 16px; }
+
+    .card {
+      background: white; border-radius: 16px; padding: 16px;
+      margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+
+    .input {
+      width: 100%; padding: 14px 16px; border: 2px solid #eee;
+      border-radius: 12px; font-size: 16px; outline: none;
+      transition: border-color 0.2s;
+    }
+    .input:focus { border-color: #E91E63; }
+
+    .tag {
+      display: inline-flex; align-items: center; padding: 8px 16px;
+      border-radius: 20px; font-size: 14px; font-weight: 500;
+      margin: 4px; cursor: pointer; transition: all 0.2s;
+      border: 2px solid #eee; background: white; color: #666;
+    }
+    .tag.selected { border-color: #E91E63; background: #FFF0F5; color: #E91E63; }
+    .tag:active { transform: scale(0.95); }
+
+    .time-ago { color: #E91E63; font-weight: 600; }
+    .record-time { color: #999; font-size: 13px; }
+    .record-by { 
+      display: inline-block; padding: 2px 8px; border-radius: 10px;
+      font-size: 12px; background: #FFF0F5; color: #E91E63;
+    }
+    .record-item {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px 0; border-bottom: 1px solid #f5f5f5;
+    }
+    .record-item:last-child { border-bottom: none; }
+
+    .active-event {
+      background: linear-gradient(135deg, #FFF0F5, #FFE0EC);
+      border: 2px solid #E91E63; animation: pulse-border 2s infinite;
+    }
+    @keyframes pulse-border {
+      0%, 100% { border-color: #E91E63; }
+      50% { border-color: #F48FB1; }
+    }
+
+    .timer { font-size: 28px; font-weight: 700; color: #E91E63; font-variant-numeric: tabular-nums; }
+
+    /* ===== 底部导航 ===== */
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: white; display: flex; justify-content: space-around;
+      padding: 8px 0 env(safe-area-inset-bottom, 8px);
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.08);
+      z-index: 100;
+    }
+    .nav-item {
+      display: flex; flex-direction: column; align-items: center;
+      padding: 4px 12px; cursor: pointer; color: #999;
+      font-size: 11px; transition: color 0.2s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .nav-item.active { color: #E91E63; }
+    .nav-item .nav-icon { font-size: 24px; margin-bottom: 2px; }
+
+    /* ===== 进行中事件横幅 ===== */
+    .active-banner {
+      display: none; position: fixed; top: 0; left: 0; right: 0;
+      background: linear-gradient(135deg, #E91E63, #FF5722);
+      color: white; padding: 10px 16px; z-index: 200;
+      font-size: 14px; text-align: center; cursor: pointer;
+    }
+    .active-banner.show { display: block; }
+    .active-banner .banner-timer { font-weight: 700; font-size: 16px; }
+
+    /* ===== 登录页 ===== */
+    #loginPage { 
+      display: flex; flex-direction: column; align-items: center; 
+      justify-content: center; min-height: 100vh; padding: 32px;
+    }
+    .login-title { font-size: 48px; margin-bottom: 8px; }
+    .login-subtitle { font-size: 20px; color: #E91E63; font-weight: 600; margin-bottom: 32px; }
+    .identity-grid { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; justify-content: center; }
+    .identity-btn {
+      display: flex; flex-direction: column; align-items: center;
+      padding: 16px 24px; border: 2px solid #eee; border-radius: 16px;
+      background: white; cursor: pointer; transition: all 0.2s;
+      min-width: 90px;
+    }
+    .identity-btn:active { transform: scale(0.95); }
+    .identity-btn.selected { border-color: #E91E63; background: #FFF0F5; }
+    .identity-btn .identity-icon { font-size: 32px; margin-bottom: 4px; }
+    .identity-btn .identity-name { font-size: 14px; font-weight: 600; color: #333; }
+
+    /* ===== 事件选择弹窗 ===== */
+    .modal-overlay {
+      display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.4); z-index: 300;
+      justify-content: center; align-items: flex-end;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal {
+      background: white; border-radius: 20px 20px 0 0; padding: 24px;
+      width: 100%; max-width: 500px; max-height: 70vh; overflow-y: auto;
+      animation: slideUp 0.3s ease;
+    }
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    .modal-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; text-align: center; }
+
+    /* ===== 删除按钮 ===== */
+    .delete-btn {
+      color: #ccc; font-size: 18px; cursor: pointer; padding: 4px 8px;
+    }
+    .delete-btn:active { color: #f44336; }
+
+    /* ===== 空状态 ===== */
+    .empty-state { text-align: center; padding: 40px 20px; color: #ccc; }
+    .empty-state .empty-icon { font-size: 48px; margin-bottom: 8px; }
+    .empty-state .empty-text { font-size: 14px; }
+
+    /* 有 banner 时的页面偏移 */
+    body.has-banner .page { padding-top: 56px; }
+  </style>
+</head>
+<body>
+
+<!-- ===== 进行中事件横幅 ===== -->
+<div class="active-banner" id="activeBanner" onclick="switchTab('duration')">
+  <span id="bannerText"></span>
+</div>
+
+<!-- ===== 登录页 ===== -->
+<div id="loginPage" style="display: flex;">
+  <div class="login-title">&#x1F476;</div>
+  <div class="login-subtitle">小记录</div>
+  <input class="input" id="passwordInput" type="password" placeholder="输入密码" 
+         style="max-width: 280px; text-align: center;">
+  <div id="loginStep2" style="display: none; text-align: center; margin-top: 20px;">
+    <div style="font-size: 15px; color: #666; margin-bottom: 12px;">你是谁？</div>
+    <div class="identity-grid">
+      <div class="identity-btn" onclick="selectIdentity('爸爸', this)">
+        <span class="identity-icon">&#x1F468;</span>
+        <span class="identity-name">爸爸</span>
+      </div>
+      <div class="identity-btn" onclick="selectIdentity('妈妈', this)">
+        <span class="identity-icon">&#x1F469;</span>
+        <span class="identity-name">妈妈</span>
+      </div>
+      <div class="identity-btn" onclick="selectIdentity('奶奶', this)">
+        <span class="identity-icon">&#x1F475;</span>
+        <span class="identity-name">奶奶</span>
+      </div>
+    </div>
+  </div>
+  <div id="loginError" style="color: #f44336; font-size: 13px; margin-top: 12px;"></div>
+</div>
+
+<!-- ===== 主应用 ===== -->
+<div id="mainApp" style="display: none;">
+
+  <!-- 时间点记录页 -->
+  <div class="page active" id="instantPage">
+    <div class="header">
+      &#x23F0; 时间点记录
+      <small>记录一次性事件，如换尿裤</small>
+    </div>
+
+    <!-- 快捷记录按钮 -->
+    <div class="card" style="text-align: center;">
+      <div style="font-size: 14px; color: #999; margin-bottom: 12px;">快速记录</div>
+      <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+        <button class="btn btn-primary btn-lg" onclick="quickInstant('diaper', '换尿裤')">
+          &#x1F9F7; 换尿裤
+        </button>
+        <button class="btn btn-success btn-lg" onclick="quickInstant('feed', '喂奶')">
+          &#x1F37C; 喂奶
+        </button>
+        <button class="btn btn-outline btn-lg" onclick="showInstantModal()">
+          &#x2795; 其他
+        </button>
+      </div>
+    </div>
+
+    <!-- 上次记录距今 -->
+    <div class="card" id="lastInstantCard" style="display: none;">
+      <div style="font-size: 14px; color: #999;">上次换尿裤</div>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
+        <div>
+          <span class="time-ago" id="lastDiaperAgo">--</span>
+          <span style="font-size: 13px; color: #999;">前</span>
+        </div>
+        <div>
+          <span class="record-time" id="lastDiaperTime">--</span>
+          <span class="record-by" id="lastDiaperBy">--</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 今日记录列表 -->
+    <div class="card">
+      <div style="font-size: 14px; color: #999; margin-bottom: 8px;">今日记录</div>
+      <div id="instantList">
+        <div class="empty-state">
+          <div class="empty-icon">&#x1F4CB;</div>
+          <div class="empty-text">暂无记录</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 持续时间记录页 -->
+  <div class="page" id="durationPage">
+    <div class="header">
+      &#x23F1;&#xFE0F; 持续记录
+      <small>记录有时长的活动，如晒太阳</small>
+    </div>
+
+    <!-- 进行中的事件 -->
+    <div id="activeEventsSection" style="display: none;">
+      <div style="font-size: 14px; color: #999; margin-bottom: 8px;">&#x1F534; 进行中</div>
+      <div id="activeEventsList"></div>
+    </div>
+
+    <!-- 开始新事件 -->
+    <div class="card" style="text-align: center;">
+      <div style="font-size: 14px; color: #999; margin-bottom: 12px;">开始新活动</div>
+      <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+        <button class="btn btn-primary btn-lg" onclick="startDuration('sunbath', '晒太阳')">
+          &#x2600;&#xFE0F; 晒太阳
+        </button>
+        <button class="btn btn-success btn-lg" onclick="startDuration('breastfeed', '吃奶')">
+          &#x1F37C; 吃奶
+        </button>
+        <button class="btn btn-outline btn-lg" onclick="showDurationModal()">
+          &#x2795; 其他
+        </button>
+      </div>
+    </div>
+
+    <!-- 今日完成的记录 -->
+    <div class="card">
+      <div style="font-size: 14px; color: #999; margin-bottom: 8px;">今日已完成</div>
+      <div id="durationList">
+        <div class="empty-state">
+          <div class="empty-icon">&#x1F4CB;</div>
+          <div class="empty-text">暂无记录</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 历史页 -->
+  <div class="page" id="historyPage">
+    <div class="header">
+      &#x1F4C5; 历史记录
+    </div>
+    <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+      <button class="tag selected" onclick="filterHistory('all', this)">全部</button>
+      <button class="tag" onclick="filterHistory('diaper', this)">换尿裤</button>
+      <button class="tag" onclick="filterHistory('sunbath', this)">晒太阳</button>
+      <button class="tag" onclick="filterHistory('feed', this)">喂奶</button>
+      <button class="tag" onclick="filterHistory('breastfeed', this)">吃奶</button>
+    </div>
+    <div id="historyList"></div>
+  </div>
+
+</div>
+
+<!-- 底部导航 -->
+<div class="bottom-nav" id="bottomNav" style="display: none;">
+  <div class="nav-item active" onclick="switchTab('instant')">
+    <span class="nav-icon">&#x23F0;</span>
+    <span>时间点</span>
+  </div>
+  <div class="nav-item" onclick="switchTab('duration')">
+    <span class="nav-icon">&#x23F1;&#xFE0F;</span>
+    <span>持续</span>
+  </div>
+  <div class="nav-item" onclick="switchTab('history')">
+    <span class="nav-icon">&#x1F4C5;</span>
+    <span>历史</span>
+  </div>
+</div>
+
+<!-- ===== 事件选择弹窗 - 时间点 ===== -->
+<div class="modal-overlay" id="instantModal">
+  <div class="modal">
+    <div class="modal-title">选择事件类型</div>
+    <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
+      <button class="btn btn-primary" onclick="quickInstant('diaper', '换尿裤'); closeModal('instantModal')">&#x1F9F7; 换尿裤</button>
+      <button class="btn btn-success" onclick="quickInstant('feed', '喂奶'); closeModal('instantModal')">&#x1F37C; 喂奶</button>
+      <button class="btn btn-outline" onclick="quickInstant('poop', '拉便便'); closeModal('instantModal')">&#x1F4A9; 拉便便</button>
+      <button class="btn btn-outline" onclick="quickInstant('bath', '洗澡'); closeModal('instantModal')">&#x1F6C1; 洗澡</button>
+      <button class="btn btn-outline" onclick="quickInstant('sleep', '入睡'); closeModal('instantModal')">&#x1F634; 入睡</button>
+      <button class="btn btn-outline" onclick="quickInstant('wake', '醒来'); closeModal('instantModal')">&#x1F31E; 醒来</button>
+      <button class="btn btn-outline" onclick="quickInstant('medicine', '吃药'); closeModal('instantModal')">&#x1F48A; 吃药</button>
+    </div>
+    <button class="btn btn-block" style="margin-top: 16px; background: #f5f5f5; color: #999;" onclick="closeModal('instantModal')">取消</button>
+  </div>
+</div>
+
+<!-- ===== 事件选择弹窗 - 持续 ===== -->
+<div class="modal-overlay" id="durationModal">
+  <div class="modal">
+    <div class="modal-title">选择活动类型</div>
+    <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
+      <button class="btn btn-primary" onclick="startDuration('sunbath', '晒太阳'); closeModal('durationModal')">&#x2600;&#xFE0F; 晒太阳</button>
+      <button class="btn btn-success" onclick="startDuration('breastfeed', '吃奶'); closeModal('durationModal')">&#x1F37C; 吃奶</button>
+      <button class="btn btn-outline" onclick="startDuration('tummy', '趴趴时间'); closeModal('durationModal')">&#x1F476; 趴趴时间</button>
+      <button class="btn btn-outline" onclick="startDuration('play', '玩耍'); closeModal('durationModal')">&#x1F3A8; 玩耍</button>
+      <button class="btn btn-outline" onclick="startDuration('nap', '小睡'); closeModal('durationModal')">&#x1F634; 小睡</button>
+      <button class="btn btn-outline" onclick="startDuration('walk', '户外散步'); closeModal('durationModal')">&#x1F6B6; 户外散步</button>
+    </div>
+    <button class="btn btn-block" style="margin-top: 16px; background: #f5f5f5; color: #999;" onclick="closeModal('durationModal')">取消</button>
+  </div>
+</div>
+
+<!-- ===== 修改事件弹窗 ===== -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <div class="modal-title">修改活动类型</div>
+    <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;" id="editEventOptions"></div>
+    <button class="btn btn-block" style="margin-top: 16px; background: #f5f5f5; color: #999;" onclick="closeModal('editModal')">取消</button>
+  </div>
+</div>
+
+<script>
+// ===== 全局状态 =====
+const API = '';
+let TOKEN = localStorage.getItem('xjl_token') || '';
+let USER = localStorage.getItem('xjl_user') || '';
+let activeTimers = {};
+let refreshInterval = null;
+
+// ===== API 请求封装 =====
+async function api(method, path, body) {
+  const opts = {
+    method,
+    headers: { 'Content-Type': 'application/json', 'x-auth-token': TOKEN }
+  };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(API + path, opts);
+  if (res.status === 401) { logout(); throw new Error('未认证'); }
+  return res.json();
+}
+
+// ===== 登录逻辑 =====
+document.getElementById('passwordInput').addEventListener('keyup', async function(e) {
+  if (e.key === 'Enter') {
+    try {
+      const res = await fetch(API + '/api/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: this.value })
+      });
+      const data = await res.json();
+      if (data.success) {
+        TOKEN = data.token;
+        localStorage.setItem('xjl_token', TOKEN);
+        document.getElementById('loginStep2').style.display = 'block';
+        this.style.display = 'none';
+        document.getElementById('loginError').textContent = '';
+      } else {
+        document.getElementById('loginError').textContent = '密码不对哦～';
+      }
+    } catch (err) {
+      document.getElementById('loginError').textContent = '网络错误';
+    }
+  }
+});
+
+function selectIdentity(name, el) {
+  document.querySelectorAll('.identity-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  USER = name;
+  localStorage.setItem('xjl_user', USER);
+  setTimeout(() => enterApp(), 300);
+}
+
+function enterApp() {
+  document.getElementById('loginPage').style.display = 'none';
+  document.getElementById('mainApp').style.display = 'block';
+  document.getElementById('bottomNav').style.display = 'flex';
+  loadData();
+  refreshInterval = setInterval(loadData, 15000); // 15 秒轮询
+}
+
+function logout() {
+  TOKEN = '';
+  USER = '';
+  localStorage.removeItem('xjl_token');
+  localStorage.removeItem('xjl_user');
+  document.getElementById('loginPage').style.display = 'flex';
+  document.getElementById('mainApp').style.display = 'none';
+  document.getElementById('bottomNav').style.display = 'none';
+  document.getElementById('loginStep2').style.display = 'none';
+  document.getElementById('passwordInput').style.display = 'block';
+  document.getElementById('passwordInput').value = '';
+  if (refreshInterval) clearInterval(refreshInterval);
+}
+
+// 自动登录
+if (TOKEN && USER) {
+  api('GET', '/api/active').then(() => enterApp()).catch(() => logout());
+} 
+
+// ===== 页面切换 =====
+function switchTab(tab) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const tabMap = { instant: 0, duration: 1, history: 2 };
+  document.getElementById(tab + 'Page').classList.add('active');
+  document.querySelectorAll('.nav-item')[tabMap[tab]].classList.add('active');
+  if (tab === 'history') loadHistory();
+}
+
+// ===== 数据加载 =====
+async function loadData() {
+  try {
+    const [today, active] = await Promise.all([
+      api('GET', '/api/today'),
+      api('GET', '/api/active')
+    ]);
+    renderInstantList(today.instants);
+    renderDurationList(today.durations, active);
+    renderActiveBanner(active);
+    updateLastDiaper(today.instants);
+  } catch (err) {
+    console.error('加载数据失败:', err);
+  }
+}
+
+// ===== 时间点记录 =====
+async function quickInstant(type, label) {
+  const now = new Date();
+  const localISO = toLocalISO(now);
+  await api('POST', '/api/instant', {
+    event_type: type,
+    event_label: label,
+    recorded_by: USER,
+    recorded_at: localISO
+  });
+  showToast(`已记录 ${label} ✓`);
+  loadData();
+}
+
+function renderInstantList(records) {
+  const el = document.getElementById('instantList');
+  if (!records || records.length === 0) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">&#x1F4CB;</div><div class="empty-text">今天还没有记录</div></div>';
+    return;
+  }
+  el.innerHTML = records.map(r => `
+    <div class="record-item">
+      <div>
+        <div style="font-size: 15px; font-weight: 600;">${getEmoji(r.event_type)} ${r.event_label}</div>
+        <div class="record-time">${formatTime(r.recorded_at)} · <span class="record-by">${r.recorded_by}</span></div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="font-size: 13px; color: #E91E63;">${timeAgo(r.recorded_at)}</span>
+        <span class="delete-btn" onclick="deleteInstant(${r.id})">×</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function updateLastDiaper(records) {
+  const diaper = records.find(r => r.event_type === 'diaper');
+  const card = document.getElementById('lastInstantCard');
+  if (diaper) {
+    card.style.display = 'block';
+    document.getElementById('lastDiaperAgo').textContent = timeAgo(diaper.recorded_at);
+    document.getElementById('lastDiaperTime').textContent = formatTime(diaper.recorded_at) + ' ';
+    document.getElementById('lastDiaperBy').textContent = diaper.recorded_by;
+  } else {
+    card.style.display = 'none';
+  }
+}
+
+async function deleteInstant(id) {
+  if (!confirm('确定删除这条记录？')) return;
+  await api('DELETE', `/api/instant/${id}`);
+  loadData();
+}
+
+// ===== 持续时间记录 =====
+async function startDuration(type, label) {
+  const now = new Date();
+  const localISO = toLocalISO(now);
+  await api('POST', '/api/duration/start', {
+    event_type: type,
+    event_label: label,
+    started_by: USER,
+    started_at: localISO
+  });
+  showToast(`${label} 开始计时 ▶`);
+  loadData();
+}
+
+async function endDuration(id) {
+  await api('POST', `/api/duration/end/${id}`, { ended_by: USER });
+  showToast('已结束 ✓');
+  loadData();
+}
+
+function renderDurationList(allRecords, activeRecords) {
+  // 进行中的
+  const activeSection = document.getElementById('activeEventsSection');
+  const activeList = document.getElementById('activeEventsList');
+  
+  if (activeRecords && activeRecords.length > 0) {
+    activeSection.style.display = 'block';
+    activeList.innerHTML = activeRecords.map(r => {
+      const elapsed = getElapsedMinutes(r.started_at);
+      return `
+        <div class="card active-event">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-size: 16px; font-weight: 700;">${getEmoji(r.event_type)} ${r.event_label}</div>
+              <div class="record-time">${formatTime(r.started_at)} 开始 · ${r.started_by}</div>
+            </div>
+            <div style="text-align: right;">
+              <div class="timer" id="timer-${r.id}">${formatDuration(elapsed)}</div>
+            </div>
+          </div>
+          <div style="display: flex; gap: 8px; margin-top: 12px;">
+            <button class="btn btn-danger btn-block" onclick="endDuration(${r.id})">⏹ 结束</button>
+            <button class="btn btn-outline" onclick="showEditModal(${r.id})" style="flex-shrink: 0;">✏️</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+    // 启动定时器
+    startTimers(activeRecords);
+  } else {
+    activeSection.style.display = 'none';
+    activeList.innerHTML = '';
+  }
+
+  // 已完成的
+  const completedRecords = allRecords.filter(r => r.ended_at);
+  const durationList = document.getElementById('durationList');
+  if (completedRecords.length === 0) {
+    durationList.innerHTML = '<div class="empty-state"><div class="empty-icon">&#x1F4CB;</div><div class="empty-text">今天还没有完成的活动</div></div>';
+    return;
+  }
+  durationList.innerHTML = completedRecords.map(r => `
+    <div class="record-item">
+      <div>
+        <div style="font-size: 15px; font-weight: 600;">${getEmoji(r.event_type)} ${r.event_label}</div>
+        <div class="record-time">${formatTime(r.started_at)} → ${formatTime(r.ended_at)}</div>
+        <div class="record-time">${r.started_by}开始 · ${r.ended_by}结束</div>
+      </div>
+      <div style="text-align: right;">
+        <div style="font-size: 18px; font-weight: 700; color: #4CAF50;">${formatDuration(r.duration_minutes)}</div>
+        <span class="delete-btn" onclick="deleteDuration(${r.id})">×</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function startTimers(activeRecords) {
+  // 清理旧定时器
+  Object.values(activeTimers).forEach(t => clearInterval(t));
+  activeTimers = {};
+  
+  activeRecords.forEach(r => {
+    activeTimers[r.id] = setInterval(() => {
+      const el = document.getElementById(`timer-${r.id}`);
+      if (el) {
+        el.textContent = formatDuration(getElapsedMinutes(r.started_at));
+      }
+    }, 1000);
+  });
+}
+
+function renderActiveBanner(active) {
+  const banner = document.getElementById('activeBanner');
+  if (active && active.length > 0) {
+    banner.classList.add('show');
+    document.body.classList.add('has-banner');
+    const r = active[0];
+    const updateBanner = () => {
+      const elapsed = getElapsedMinutes(r.started_at);
+      document.getElementById('bannerText').innerHTML = 
+        `${getEmoji(r.event_type)} ${r.event_label} 进行中 <span class="banner-timer">${formatDuration(elapsed)}</span>`;
+    };
+    updateBanner();
+    if (activeTimers['banner']) clearInterval(activeTimers['banner']);
+    activeTimers['banner'] = setInterval(updateBanner, 1000);
+  } else {
+    banner.classList.remove('show');
+    document.body.classList.remove('has-banner');
+  }
+}
+
+async function deleteDuration(id) {
+  if (!confirm('确定删除这条记录？')) return;
+  await api('DELETE', `/api/duration/${id}`);
+  loadData();
+}
+
+// ===== 修改事件类型 =====
+let editingId = null;
+function showEditModal(id) {
+  editingId = id;
+  const types = [
+    ['sunbath', '☀️ 晒太阳'], ['breastfeed', '🍼 吃奶'], ['tummy', '👶 趴趴时间'],
+    ['play', '🎨 玩耍'], ['nap', '😴 小睡'], ['walk', '🚶 户外散步']
+  ];
+  document.getElementById('editEventOptions').innerHTML = types.map(([type, label]) =>
+    `<button class="btn btn-outline" onclick="editDuration('${type}', '${label.slice(2)}')">${label}</button>`
+  ).join('');
+  document.getElementById('editModal').classList.add('show');
+}
+
+async function editDuration(type, label) {
+  await api('PUT', `/api/duration/${editingId}`, { event_type: type, event_label: label });
+  closeModal('editModal');
+  showToast('已修改 ✓');
+  loadData();
+}
+
+// ===== 历史记录 =====
+let historyFilter = 'all';
+async function loadHistory() {
+  try {
+    const [instants, durations] = await Promise.all([
+      api('GET', '/api/instant?limit=50'),
+      api('GET', '/api/duration?limit=50')
+    ]);
+    renderHistory(instants, durations);
+  } catch(e) {
+    console.error('加载历史失败:', e);
+  }
+}
+
+function filterHistory(type, el) {
+  document.querySelectorAll('#historyPage .tag').forEach(t => t.classList.remove('selected'));
+  el.classList.add('selected');
+  historyFilter = type;
+  loadHistory();
+}
+
+function renderHistory(instants, durations) {
+  const list = document.getElementById('historyList');
+  let all = [];
+  
+  instants.forEach(r => {
+    if (historyFilter !== 'all' && r.event_type !== historyFilter) return;
+    all.push({ time: r.recorded_at, html: `
+      <div class="record-item">
+        <div>
+          <div style="font-weight: 600;">${getEmoji(r.event_type)} ${r.event_label}</div>
+          <div class="record-time">${formatDate(r.recorded_at)} ${formatTime(r.recorded_at)} · ${r.recorded_by}</div>
+        </div>
+        <span class="delete-btn" onclick="deleteInstant(${r.id})">×</span>
+      </div>
+    `});
+  });
+  
+  durations.forEach(r => {
+    if (historyFilter !== 'all' && r.event_type !== historyFilter) return;
+    all.push({ time: r.started_at, html: `
+      <div class="record-item">
+        <div>
+          <div style="font-weight: 600;">${getEmoji(r.event_type)} ${r.event_label} ${r.ended_at ? '(' + formatDuration(r.duration_minutes) + ')' : '<span style="color:#E91E63">进行中</span>'}</div>
+          <div class="record-time">${formatDate(r.started_at)} ${formatTime(r.started_at)}${r.ended_at ? ' → ' + formatTime(r.ended_at) : ''}</div>
+          <div class="record-time">${r.started_by}${r.ended_by ? ' → ' + r.ended_by : ''}</div>
+        </div>
+        <span class="delete-btn" onclick="deleteDuration(${r.id})">×</span>
+      </div>
+    `});
+  });
+
+  all.sort((a, b) => new Date(b.time) - new Date(a.time));
+  
+  if (all.length === 0) {
+    list.innerHTML = '<div class="empty-state"><div class="empty-icon">&#x1F4CB;</div><div class="empty-text">暂无历史记录</div></div>';
+    return;
+  }
+
+  // 按日期分组
+  const groups = {};
+  all.forEach(item => {
+    const date = formatDate(item.time);
+    if (!groups[date]) groups[date] = [];
+    groups[date].push(item.html);
+  });
+
+  list.innerHTML = Object.entries(groups).map(([date, items]) => `
+    <div class="card">
+      <div style="font-size: 14px; font-weight: 600; color: #999; margin-bottom: 8px;">${date}</div>
+      ${items.join('')}
+    </div>
+  `).join('');
+}
+
+// ===== 弹窗 =====
+function showInstantModal() { document.getElementById('instantModal').classList.add('show'); }
+function showDurationModal() { document.getElementById('durationModal').classList.add('show'); }
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+// 点击遮罩关闭
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('show');
+  });
+});
+
+// ===== Toast =====
+function showToast(msg) {
+  const toast = document.createElement('div');
+  toast.textContent = msg;
+  Object.assign(toast.style, {
+    position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+    background: 'rgba(0,0,0,0.75)', color: 'white', padding: '12px 24px',
+    borderRadius: '12px', fontSize: '15px', fontWeight: '600', zIndex: '999',
+    animation: 'fadeIn 0.2s'
+  });
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 1500);
+}
+
+// ===== 工具函数 =====
+function toLocalISO(date) {
+  const offset = date.getTimezoneOffset();
+  const local = new Date(date.getTime() - offset * 60000);
+  return local.toISOString().slice(0, -1);
+}
+
+function formatTime(isoStr) {
+  const d = new Date(isoStr);
+  return d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
+}
+
+function formatDate(isoStr) {
+  const d = new Date(isoStr);
+  return `${d.getMonth() + 1}月${d.getDate()}日`;
+}
+
+function timeAgo(isoStr) {
+  const now = new Date();
+  const then = new Date(isoStr);
+  const diffMs = now - then;
+  const mins = Math.floor(diffMs / 60000);
+  if (mins < 1) return '刚刚';
+  if (mins < 60) return `${mins}分钟`;
+  const hours = Math.floor(mins / 60);
+  const remainMins = mins % 60;
+  if (hours < 24) return remainMins > 0 ? `${hours}小时${remainMins}分钟` : `${hours}小时`;
+  const days = Math.floor(hours / 24);
+  return `${days}天`;
+}
+
+function formatDuration(minutes) {
+  if (minutes < 1) {
+    const secs = Math.round(minutes * 60);
+    return `${secs}秒`;
+  }
+  const h = Math.floor(minutes / 60);
+  const m = Math.floor(minutes % 60);
+  if (h > 0) return `${h}时${m}分`;
+  return `${m}分钟`;
+}
+
+function getElapsedMinutes(startISO) {
+  return (new Date() - new Date(startISO)) / 60000;
+}
+
+function getEmoji(type) {
+  const map = {
+    diaper: '🧷', feed: '🍼', breastfeed: '🍼', sunbath: '☀️',
+    poop: '💩', bath: '🛁', sleep: '😴', wake: '🌞',
+    medicine: '💊', tummy: '👶', play: '🎨', nap: '😴', walk: '🚶'
+  };
+  return map[type] || '📝';
+}
+
+// ===== 注册 Service Worker =====
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>
