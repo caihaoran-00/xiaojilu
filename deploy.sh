@@ -22,8 +22,8 @@ echo ">>> npm 版本: $(npm -v)"
 echo ">>> 安装依赖..."
 npm install --production
 
-# 3. 创建 data 目录
-mkdir -p data
+# 3. 创建 data 目录和上传目录
+mkdir -p data/uploads
 
 # 4. 设置 systemd 服务
 echo ">>> 配置系统服务..."
@@ -43,6 +43,7 @@ Restart=always
 RestartSec=5
 Environment=PORT=3000
 Environment=PASSWORD=baobao2024
+Environment=ADMIN_PASSWORD=admin123
 Environment=NODE_ENV=production
 
 [Install]
@@ -61,6 +62,7 @@ echo "========================================="
 echo ""
 echo "  访问地址: http://$(curl -s ifconfig.me 2>/dev/null || echo '你的IP'):3000"
 echo "  默认密码: baobao2024"
+echo "  管理员密码: admin123"
 echo ""
 echo "  常用命令:"
 echo "    查看状态: sudo systemctl status xiaojilu"
@@ -70,6 +72,7 @@ echo "    停止服务: sudo systemctl stop xiaojilu"
 echo ""
 echo "  修改密码: 编辑 /etc/systemd/system/xiaojilu.service"
 echo "            修改 Environment=PASSWORD=你的新密码"
+echo "            修改 Environment=ADMIN_PASSWORD=你的管理员密码"
 echo "            然后: sudo systemctl daemon-reload && sudo systemctl restart xiaojilu"
 echo ""
 echo "  手机使用: 打开浏览器访问上面的地址"

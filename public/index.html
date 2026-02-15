@@ -12,28 +12,13 @@
   <title>小记录</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: #FFF5F5;
-      color: #333;
-      min-height: 100vh;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    /* ===== 通用 ===== */
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #FFF5F5; color: #333; min-height: 100vh; -webkit-tap-highlight-color: transparent; }
     .page { display: none; padding: 16px; padding-bottom: 80px; max-width: 500px; margin: 0 auto; }
     .page.active { display: block; }
-    .header { 
-      text-align: center; padding: 20px 0 16px;
-      font-size: 22px; font-weight: 700; color: #E91E63;
-    }
-    .header small { display: block; font-size: 13px; color: #999; font-weight: 400; margin-top: 4px; }
-    .btn {
-      display: inline-flex; align-items: center; justify-content: center;
-      padding: 12px 24px; border: none; border-radius: 12px;
-      font-size: 16px; font-weight: 600; cursor: pointer;
-      transition: all 0.2s; -webkit-tap-highlight-color: transparent;
-    }
+    .header { text-align: center; padding: 16px 0 12px; font-size: 20px; font-weight: 700; color: #E91E63; position: relative; }
+    .header small { display: block; font-size: 12px; color: #999; font-weight: 400; margin-top: 2px; }
+    .user-badge { position: absolute; right: 0; top: 18px; padding: 3px 10px; border-radius: 12px; font-size: 12px; background: #FFF0F5; color: #E91E63; font-weight: 500; cursor: pointer; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; padding: 12px 24px; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s; -webkit-tap-highlight-color: transparent; }
     .btn:active { transform: scale(0.96); }
     .btn-primary { background: #E91E63; color: white; }
     .btn-primary:active { background: #C2185B; }
@@ -44,139 +29,99 @@
     .btn-outline { background: white; color: #E91E63; border: 2px solid #E91E63; }
     .btn-block { display: flex; width: 100%; }
     .btn-lg { padding: 16px 32px; font-size: 18px; border-radius: 16px; }
-
-    .card {
-      background: white; border-radius: 16px; padding: 16px;
-      margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-    }
-
-    .input {
-      width: 100%; padding: 14px 16px; border: 2px solid #eee;
-      border-radius: 12px; font-size: 16px; outline: none;
-      transition: border-color 0.2s;
-    }
+    .btn-sm { padding: 6px 14px; font-size: 13px; border-radius: 8px; }
+    .card { background: white; border-radius: 16px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .input { width: 100%; padding: 14px 16px; border: 2px solid #eee; border-radius: 12px; font-size: 16px; outline: none; transition: border-color 0.2s; }
     .input:focus { border-color: #E91E63; }
-
-    .tag {
-      display: inline-flex; align-items: center; padding: 8px 16px;
-      border-radius: 20px; font-size: 14px; font-weight: 500;
-      margin: 4px; cursor: pointer; transition: all 0.2s;
-      border: 2px solid #eee; background: white; color: #666;
-    }
+    .tag { display: inline-flex; align-items: center; padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: 500; margin: 4px; cursor: pointer; transition: all 0.2s; border: 2px solid #eee; background: white; color: #666; }
     .tag.selected { border-color: #E91E63; background: #FFF0F5; color: #E91E63; }
     .tag:active { transform: scale(0.95); }
-
     .time-ago { color: #E91E63; font-weight: 600; }
     .record-time { color: #999; font-size: 13px; }
-    .record-by { 
-      display: inline-block; padding: 2px 8px; border-radius: 10px;
-      font-size: 12px; background: #FFF0F5; color: #E91E63;
-    }
-    .record-item {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 12px 0; border-bottom: 1px solid #f5f5f5;
-    }
+    .record-by { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 12px; background: #FFF0F5; color: #E91E63; }
+    .record-item { padding: 12px 0; border-bottom: 1px solid #f5f5f5; }
     .record-item:last-child { border-bottom: none; }
-
-    .active-event {
-      background: linear-gradient(135deg, #FFF0F5, #FFE0EC);
-      border: 2px solid #E91E63; animation: pulse-border 2s infinite;
-    }
-    @keyframes pulse-border {
-      0%, 100% { border-color: #E91E63; }
-      50% { border-color: #F48FB1; }
-    }
-
+    .record-main { display: flex; justify-content: space-between; align-items: center; }
+    .record-images { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; align-items: center; }
+    .record-images img { width: 56px; height: 56px; border-radius: 8px; object-fit: cover; cursor: pointer; border: 1px solid #eee; }
+    .img-upload-btn { width: 56px; height: 56px; border-radius: 8px; border: 2px dashed #ddd; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 20px; color: #ccc; background: #fafafa; flex-shrink: 0; }
+    .img-upload-btn:active { background: #f0f0f0; }
+    .img-thumb-wrap { position: relative; display: inline-block; }
+    .img-thumb-del { position: absolute; top: -4px; right: -4px; width: 18px; height: 18px; border-radius: 50%; background: #f44336; color: white; font-size: 11px; display: flex; align-items: center; justify-content: center; cursor: pointer; line-height: 1; border: 1px solid white; }
+    .active-event { background: linear-gradient(135deg, #FFF0F5, #FFE0EC); border: 2px solid #E91E63; animation: pulse-border 2s infinite; }
+    @keyframes pulse-border { 0%, 100% { border-color: #E91E63; } 50% { border-color: #F48FB1; } }
     .timer { font-size: 28px; font-weight: 700; color: #E91E63; font-variant-numeric: tabular-nums; }
-
-    /* ===== 底部导航 ===== */
-    .bottom-nav {
-      position: fixed; bottom: 0; left: 0; right: 0;
-      background: white; display: flex; justify-content: space-around;
-      padding: 8px 0 env(safe-area-inset-bottom, 8px);
-      box-shadow: 0 -2px 10px rgba(0,0,0,0.08);
-      z-index: 100;
-    }
-    .nav-item {
-      display: flex; flex-direction: column; align-items: center;
-      padding: 4px 12px; cursor: pointer; color: #999;
-      font-size: 11px; transition: color 0.2s;
-      -webkit-tap-highlight-color: transparent;
-    }
+    .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; padding: 8px 0 env(safe-area-inset-bottom, 8px); box-shadow: 0 -2px 10px rgba(0,0,0,0.08); z-index: 100; }
+    .nav-item { display: flex; flex-direction: column; align-items: center; padding: 4px 12px; cursor: pointer; color: #999; font-size: 11px; transition: color 0.2s; }
     .nav-item.active { color: #E91E63; }
     .nav-item .nav-icon { font-size: 24px; margin-bottom: 2px; }
-
-    /* ===== 进行中事件横幅 ===== */
-    .active-banner {
-      display: none; position: fixed; top: 0; left: 0; right: 0;
-      background: linear-gradient(135deg, #E91E63, #FF5722);
-      color: white; padding: 10px 16px; z-index: 200;
-      font-size: 14px; text-align: center; cursor: pointer;
-    }
+    .active-banner { display: none; position: fixed; top: 0; left: 0; right: 0; background: linear-gradient(135deg, #E91E63, #FF5722); color: white; padding: 10px 16px; z-index: 200; font-size: 14px; text-align: center; cursor: pointer; }
     .active-banner.show { display: block; }
     .active-banner .banner-timer { font-weight: 700; font-size: 16px; }
-
-    /* ===== 登录页 ===== */
-    #loginPage { 
-      display: flex; flex-direction: column; align-items: center; 
-      justify-content: center; min-height: 100vh; padding: 32px;
-    }
+    body.has-banner .page { padding-top: 56px; }
+    #loginPage { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 32px; }
     .login-title { font-size: 48px; margin-bottom: 8px; }
     .login-subtitle { font-size: 20px; color: #E91E63; font-weight: 600; margin-bottom: 32px; }
     .identity-grid { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; justify-content: center; }
-    .identity-btn {
-      display: flex; flex-direction: column; align-items: center;
-      padding: 16px 24px; border: 2px solid #eee; border-radius: 16px;
-      background: white; cursor: pointer; transition: all 0.2s;
-      min-width: 90px;
-    }
+    .identity-btn { display: flex; flex-direction: column; align-items: center; padding: 16px 24px; border: 2px solid #eee; border-radius: 16px; background: white; cursor: pointer; transition: all 0.2s; min-width: 90px; }
     .identity-btn:active { transform: scale(0.95); }
     .identity-btn.selected { border-color: #E91E63; background: #FFF0F5; }
     .identity-btn .identity-icon { font-size: 32px; margin-bottom: 4px; }
     .identity-btn .identity-name { font-size: 14px; font-weight: 600; color: #333; }
-
-    /* ===== 事件选择弹窗 ===== */
-    .modal-overlay {
-      display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.4); z-index: 300;
-      justify-content: center; align-items: flex-end;
-    }
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); z-index: 300; justify-content: center; align-items: flex-end; }
     .modal-overlay.show { display: flex; }
-    .modal {
-      background: white; border-radius: 20px 20px 0 0; padding: 24px;
-      width: 100%; max-width: 500px; max-height: 70vh; overflow-y: auto;
-      animation: slideUp 0.3s ease;
-    }
+    .modal { background: white; border-radius: 20px 20px 0 0; padding: 24px; width: 100%; max-width: 500px; max-height: 70vh; overflow-y: auto; animation: slideUp 0.3s ease; }
     @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
     .modal-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; text-align: center; }
-
-    /* ===== 删除按钮 ===== */
-    .delete-btn {
-      color: #ccc; font-size: 18px; cursor: pointer; padding: 4px 8px;
-    }
+    .delete-btn { color: #ccc; font-size: 18px; cursor: pointer; padding: 4px 8px; }
     .delete-btn:active { color: #f44336; }
-
-    /* ===== 空状态 ===== */
     .empty-state { text-align: center; padding: 40px 20px; color: #ccc; }
     .empty-state .empty-icon { font-size: 48px; margin-bottom: 8px; }
     .empty-state .empty-text { font-size: 14px; }
-
-    /* 有 banner 时的页面偏移 */
-    body.has-banner .page { padding-top: 56px; }
+    .date-group-title { font-size: 14px; font-weight: 600; color: #999; margin-bottom: 8px; padding-left: 2px; }
+    .settings-popup { display: none; position: absolute; right: 0; top: 44px; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); padding: 8px 0; z-index: 50; min-width: 120px; }
+    .settings-popup.show { display: block; }
+    .settings-popup-item { padding: 10px 20px; font-size: 14px; cursor: pointer; color: #333; }
+    .settings-popup-item:active { background: #f5f5f5; }
+    .img-preview-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.9); z-index: 500; justify-content: center; align-items: center; flex-direction: column; }
+    .img-preview-overlay.show { display: flex; }
+    .img-preview-overlay img { max-width: 95%; max-height: 80vh; border-radius: 8px; }
+    .img-preview-close { position: absolute; top: 16px; right: 16px; color: white; font-size: 32px; cursor: pointer; padding: 8px; z-index: 501; }
+    .img-preview-delete { margin-top: 16px; padding: 10px 30px; background: #f44336; color: white; border: none; border-radius: 12px; font-size: 15px; cursor: pointer; }
+    #adminPage { display: none; padding: 20px; max-width: 500px; margin: 0 auto; min-height: 100vh; }
+    .admin-header { text-align: center; padding: 20px 0; font-size: 20px; font-weight: 700; color: #333; }
+    .admin-card { background: white; border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .admin-family-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f0f0f0; }
+    .admin-family-item:last-child { border-bottom: none; }
+    .admin-btn { padding: 6px 12px; border: none; border-radius: 8px; font-size: 13px; cursor: pointer; margin-left: 6px; }
+    .admin-btn-edit { background: #E3F2FD; color: #1976D2; }
+    .admin-btn-del { background: #FFEBEE; color: #D32F2F; }
+    .admin-link { color: #ccc; font-size: 12px; margin-top: 24px; cursor: pointer; text-decoration: underline; }
+    .admin-link:active { color: #999; }
   </style>
 </head>
 <body>
 
-<!-- ===== 进行中事件横幅 ===== -->
+<!-- 进行中事件横幅 -->
 <div class="active-banner" id="activeBanner" onclick="switchTab('duration')">
   <span id="bannerText"></span>
 </div>
 
-<!-- ===== 登录页 ===== -->
+<!-- 图片预览浮层 -->
+<div class="img-preview-overlay" id="imgPreview">
+  <span class="img-preview-close" onclick="closeImgPreview()">&times;</span>
+  <img src="" id="imgPreviewSrc">
+  <button class="img-preview-delete" id="imgPreviewDelBtn" onclick="deletePreviewImage()">删除图片</button>
+</div>
+
+<!-- 隐藏文件输入 -->
+<input type="file" id="imageInput" accept="image/*" style="display:none" onchange="handleImageSelected(this)">
+
+<!-- 登录页 -->
 <div id="loginPage" style="display: flex;">
   <div class="login-title">&#x1F476;</div>
   <div class="login-subtitle">小记录</div>
-  <input class="input" id="passwordInput" type="password" placeholder="输入密码" 
+  <input class="input" id="passwordInput" type="password" placeholder="输入密码"
          style="max-width: 280px; text-align: center;">
   <div id="loginStep2" style="display: none; text-align: center; margin-top: 20px;">
     <div style="font-size: 15px; color: #666; margin-bottom: 12px;">你是谁？</div>
@@ -196,35 +141,74 @@
     </div>
   </div>
   <div id="loginError" style="color: #f44336; font-size: 13px; margin-top: 12px;"></div>
+  <div class="admin-link" onclick="showAdminLogin()">管理入口</div>
 </div>
 
-<!-- ===== 主应用 ===== -->
+<!-- 管理后台 -->
+<div id="adminPage">
+  <div id="adminLoginSection">
+    <div class="admin-header">&#x1F512; 管理后台</div>
+    <div style="max-width: 320px; margin: 40px auto; text-align: center;">
+      <input class="input" id="adminPasswordInput" type="password" placeholder="输入管理员密码" style="text-align: center;">
+      <button class="btn btn-primary btn-block" style="margin-top: 16px;" onclick="adminLogin()">登录</button>
+      <div id="adminLoginError" style="color: #f44336; font-size: 13px; margin-top: 12px;"></div>
+      <div class="admin-link" onclick="backToLogin()">返回登录页</div>
+    </div>
+  </div>
+  <div id="adminPanel" style="display: none;">
+    <div class="admin-header">
+      &#x2699;&#xFE0F; 家庭管理
+      <div style="font-size: 13px; font-weight: 400; color: #999; margin-top: 4px;">
+        <span onclick="adminLogout()" style="cursor: pointer; color: #E91E63;">退出管理</span>
+      </div>
+    </div>
+    <div class="admin-card">
+      <div style="font-size: 15px; font-weight: 600; margin-bottom: 12px;">添加新家庭</div>
+      <input class="input" id="newFamilyPassword" placeholder="家庭密码" style="margin-bottom: 8px;">
+      <input class="input" id="newFamilyBabyName" placeholder="宝宝名字（可选）">
+      <button class="btn btn-primary btn-block" style="margin-top: 12px;" onclick="addFamily()">添加</button>
+      <div id="addFamilyError" style="color: #f44336; font-size: 13px; margin-top: 8px;"></div>
+    </div>
+    <div class="admin-card">
+      <div style="font-size: 15px; font-weight: 600; margin-bottom: 12px;">已有家庭</div>
+      <div id="familyList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 编辑家庭弹窗 -->
+<div class="modal-overlay" id="editFamilyModal">
+  <div class="modal">
+    <div class="modal-title">编辑家庭</div>
+    <input class="input" id="editFamilyPassword" placeholder="家庭密码" style="margin-bottom: 8px;">
+    <input class="input" id="editFamilyBabyName" placeholder="宝宝名字（可选）">
+    <div id="editFamilyError" style="color: #f44336; font-size: 13px; margin-top: 8px;"></div>
+    <button class="btn btn-primary btn-block" style="margin-top: 16px;" onclick="saveFamily()">保存</button>
+    <button class="btn btn-block" style="margin-top: 8px; background: #f5f5f5; color: #999;" onclick="closeModal('editFamilyModal')">取消</button>
+  </div>
+</div>
+
+<!-- 主应用 -->
 <div id="mainApp" style="display: none;">
 
   <!-- 时间点记录页 -->
   <div class="page active" id="instantPage">
-    <div class="header">
-      &#x23F0; 时间点记录
-      <small>记录一次性事件，如换尿裤</small>
+    <div class="header" id="instantHeader">
+      &#x1F476; <span id="instantTitle">小记录</span>
+      <small>记录一次性事件</small>
+      <span class="user-badge" id="instantBadge" onclick="toggleSettings('instantSettings')"></span>
+      <div class="settings-popup" id="instantSettings">
+        <div class="settings-popup-item" onclick="logout()">退出登录</div>
+      </div>
     </div>
-
-    <!-- 快捷记录按钮 -->
     <div class="card" style="text-align: center;">
       <div style="font-size: 14px; color: #999; margin-bottom: 12px;">快速记录</div>
       <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
-        <button class="btn btn-primary btn-lg" onclick="quickInstant('diaper', '换尿裤')">
-          &#x1F9F7; 换尿裤
-        </button>
-        <button class="btn btn-success btn-lg" onclick="quickInstant('feed', '喂奶')">
-          &#x1F37C; 喂奶
-        </button>
-        <button class="btn btn-outline btn-lg" onclick="showInstantModal()">
-          &#x2795; 其他
-        </button>
+        <button class="btn btn-primary btn-lg" onclick="quickInstant('diaper', '换尿裤')">&#x1F9F7; 换尿裤</button>
+        <button class="btn btn-success btn-lg" onclick="quickInstant('feed', '喂奶')">&#x1F37C; 喂奶</button>
+        <button class="btn btn-outline btn-lg" onclick="showInstantModal()">&#x2795; 其他</button>
       </div>
     </div>
-
-    <!-- 上次记录距今 -->
     <div class="card" id="lastInstantCard" style="display: none;">
       <div style="font-size: 14px; color: #999;">上次换尿裤</div>
       <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
@@ -238,66 +222,42 @@
         </div>
       </div>
     </div>
-
-    <!-- 今日记录列表 -->
-    <div class="card">
-      <div style="font-size: 14px; color: #999; margin-bottom: 8px;">今日记录</div>
-      <div id="instantList">
-        <div class="empty-state">
-          <div class="empty-icon">&#x1F4CB;</div>
-          <div class="empty-text">暂无记录</div>
-        </div>
-      </div>
+    <div id="instantRecords">
+      <div class="empty-state"><div class="empty-icon">&#x1F4CB;</div><div class="empty-text">暂无记录</div></div>
     </div>
   </div>
 
   <!-- 持续时间记录页 -->
   <div class="page" id="durationPage">
-    <div class="header">
-      &#x23F1;&#xFE0F; 持续记录
-      <small>记录有时长的活动，如晒太阳</small>
+    <div class="header" id="durationHeader">
+      &#x1F476; <span id="durationTitle">小记录</span>
+      <small>记录有时长的活动</small>
+      <span class="user-badge" id="durationBadge" onclick="toggleSettings('durationSettings')"></span>
+      <div class="settings-popup" id="durationSettings">
+        <div class="settings-popup-item" onclick="logout()">退出登录</div>
+      </div>
     </div>
-
-    <!-- 进行中的事件 -->
     <div id="activeEventsSection" style="display: none;">
       <div style="font-size: 14px; color: #999; margin-bottom: 8px;">&#x1F534; 进行中</div>
       <div id="activeEventsList"></div>
     </div>
-
-    <!-- 开始新事件 -->
     <div class="card" style="text-align: center;">
       <div style="font-size: 14px; color: #999; margin-bottom: 12px;">开始新活动</div>
       <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
-        <button class="btn btn-primary btn-lg" onclick="startDuration('sunbath', '晒太阳')">
-          &#x2600;&#xFE0F; 晒太阳
-        </button>
-        <button class="btn btn-success btn-lg" onclick="startDuration('breastfeed', '吃奶')">
-          &#x1F37C; 吃奶
-        </button>
-        <button class="btn btn-outline btn-lg" onclick="showDurationModal()">
-          &#x2795; 其他
-        </button>
+        <button class="btn btn-primary btn-lg" onclick="startDuration('sunbath', '晒太阳')">&#x2600;&#xFE0F; 晒太阳</button>
+        <button class="btn btn-success btn-lg" onclick="startDuration('breastfeed', '吃奶')">&#x1F37C; 吃奶</button>
+        <button class="btn btn-outline btn-lg" onclick="showDurationModal()">&#x2795; 其他</button>
       </div>
     </div>
-
-    <!-- 今日完成的记录 -->
-    <div class="card">
-      <div style="font-size: 14px; color: #999; margin-bottom: 8px;">今日已完成</div>
-      <div id="durationList">
-        <div class="empty-state">
-          <div class="empty-icon">&#x1F4CB;</div>
-          <div class="empty-text">暂无记录</div>
-        </div>
-      </div>
+    <div id="durationRecords">
+      <div class="empty-state"><div class="empty-icon">&#x1F4CB;</div><div class="empty-text">暂无记录</div></div>
     </div>
   </div>
 
   <!-- 历史页 -->
   <div class="page" id="historyPage">
-    <div class="header">
-      &#x1F4C5; 历史记录
-    </div>
-    <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+    <div class="header">&#x1F4C5; 历史记录</div>
+    <div style="display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;">
       <button class="tag selected" onclick="filterHistory('all', this)">全部</button>
       <button class="tag" onclick="filterHistory('diaper', this)">换尿裤</button>
       <button class="tag" onclick="filterHistory('sunbath', this)">晒太阳</button>
@@ -312,20 +272,17 @@
 <!-- 底部导航 -->
 <div class="bottom-nav" id="bottomNav" style="display: none;">
   <div class="nav-item active" onclick="switchTab('instant')">
-    <span class="nav-icon">&#x23F0;</span>
-    <span>时间点</span>
+    <span class="nav-icon">&#x23F0;</span><span>时间点</span>
   </div>
   <div class="nav-item" onclick="switchTab('duration')">
-    <span class="nav-icon">&#x23F1;&#xFE0F;</span>
-    <span>持续</span>
+    <span class="nav-icon">&#x23F1;&#xFE0F;</span><span>持续</span>
   </div>
   <div class="nav-item" onclick="switchTab('history')">
-    <span class="nav-icon">&#x1F4C5;</span>
-    <span>历史</span>
+    <span class="nav-icon">&#x1F4C5;</span><span>历史</span>
   </div>
 </div>
 
-<!-- ===== 事件选择弹窗 - 时间点 ===== -->
+<!-- 事件选择弹窗 - 时间点 -->
 <div class="modal-overlay" id="instantModal">
   <div class="modal">
     <div class="modal-title">选择事件类型</div>
@@ -342,7 +299,7 @@
   </div>
 </div>
 
-<!-- ===== 事件选择弹窗 - 持续 ===== -->
+<!-- 事件选择弹窗 - 持续 -->
 <div class="modal-overlay" id="durationModal">
   <div class="modal">
     <div class="modal-title">选择活动类型</div>
@@ -358,7 +315,7 @@
   </div>
 </div>
 
-<!-- ===== 修改事件弹窗 ===== -->
+<!-- 修改事件弹窗 -->
 <div class="modal-overlay" id="editModal">
   <div class="modal">
     <div class="modal-title">修改活动类型</div>
@@ -369,147 +326,332 @@
 
 <script>
 // ===== 全局状态 =====
-const API = '';
-let TOKEN = localStorage.getItem('xjl_token') || '';
-let USER = localStorage.getItem('xjl_user') || '';
-let activeTimers = {};
-let refreshInterval = null;
+var API = '';
+var TOKEN = localStorage.getItem('xjl_token') || '';
+var USER = localStorage.getItem('xjl_user') || '';
+var BABY_NAME = localStorage.getItem('xjl_babyName') || '';
+var activeTimers = {};
+var refreshInterval = null;
+var pendingUpload = { type: '', id: 0 };
+var previewingImgId = 0;
+var editingFamilyId = null;
+var editingId = null;
+var historyFilter = 'all';
 
-// ===== API 请求封装 =====
-async function api(method, path, body) {
-  const opts = {
-    method,
-    headers: { 'Content-Type': 'application/json', 'x-auth-token': TOKEN }
-  };
+// ===== API 封装 =====
+function api(method, path, body) {
+  var opts = { method: method, headers: { 'Content-Type': 'application/json', 'x-auth-token': TOKEN } };
   if (body) opts.body = JSON.stringify(body);
-  const res = await fetch(API + path, opts);
-  if (res.status === 401) { logout(); throw new Error('未认证'); }
-  return res.json();
+  return fetch(API + path, opts).then(function(res) {
+    if (res.status === 401) { logout(); throw new Error('未认证'); }
+    return res.json();
+  });
+}
+
+function adminApi(method, path, body) {
+  var adminToken = sessionStorage.getItem('xjl_admin_token') || '';
+  var opts = { method: method, headers: { 'Content-Type': 'application/json', 'x-admin-token': adminToken } };
+  if (body) opts.body = JSON.stringify(body);
+  return fetch(API + path, opts).then(function(res) {
+    if (res.status === 401) throw new Error('管理员未认证');
+    return res.json();
+  });
 }
 
 // ===== 登录逻辑 =====
-document.getElementById('passwordInput').addEventListener('keyup', async function(e) {
+document.getElementById('passwordInput').addEventListener('keyup', function(e) {
   if (e.key === 'Enter') {
-    try {
-      const res = await fetch(API + '/api/auth', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password: this.value })
-      });
-      const data = await res.json();
+    var pwd = this.value;
+    var self = this;
+    fetch(API + '/api/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: pwd })
+    }).then(function(res) { return res.json(); }).then(function(data) {
       if (data.success) {
         TOKEN = data.token;
+        BABY_NAME = data.babyName || '';
         localStorage.setItem('xjl_token', TOKEN);
+        localStorage.setItem('xjl_babyName', BABY_NAME);
         document.getElementById('loginStep2').style.display = 'block';
-        this.style.display = 'none';
+        self.style.display = 'none';
         document.getElementById('loginError').textContent = '';
       } else {
         document.getElementById('loginError').textContent = '密码不对哦～';
       }
-    } catch (err) {
+    }).catch(function() {
       document.getElementById('loginError').textContent = '网络错误';
-    }
+    });
   }
 });
 
 function selectIdentity(name, el) {
-  document.querySelectorAll('.identity-btn').forEach(b => b.classList.remove('selected'));
+  document.querySelectorAll('.identity-btn').forEach(function(b) { b.classList.remove('selected'); });
   el.classList.add('selected');
   USER = name;
   localStorage.setItem('xjl_user', USER);
-  setTimeout(() => enterApp(), 300);
+  setTimeout(function() { enterApp(); }, 300);
 }
 
 function enterApp() {
   document.getElementById('loginPage').style.display = 'none';
+  document.getElementById('adminPage').style.display = 'none';
   document.getElementById('mainApp').style.display = 'block';
   document.getElementById('bottomNav').style.display = 'flex';
+  updateHeaders();
   loadData();
-  refreshInterval = setInterval(loadData, 15000); // 15 秒轮询
+  refreshInterval = setInterval(loadData, 15000);
+}
+
+function updateHeaders() {
+  var title = BABY_NAME ? (BABY_NAME + '的小记录') : '小记录';
+  document.getElementById('instantTitle').textContent = title;
+  document.getElementById('durationTitle').textContent = title;
+  document.getElementById('instantBadge').textContent = USER;
+  document.getElementById('durationBadge').textContent = USER;
 }
 
 function logout() {
   TOKEN = '';
   USER = '';
+  BABY_NAME = '';
   localStorage.removeItem('xjl_token');
   localStorage.removeItem('xjl_user');
+  localStorage.removeItem('xjl_babyName');
   document.getElementById('loginPage').style.display = 'flex';
   document.getElementById('mainApp').style.display = 'none';
   document.getElementById('bottomNav').style.display = 'none';
   document.getElementById('loginStep2').style.display = 'none';
   document.getElementById('passwordInput').style.display = 'block';
   document.getElementById('passwordInput').value = '';
+  document.getElementById('activeBanner').classList.remove('show');
+  document.body.classList.remove('has-banner');
   if (refreshInterval) clearInterval(refreshInterval);
+  Object.values(activeTimers).forEach(function(t) { clearInterval(t); });
+  activeTimers = {};
 }
 
 // 自动登录
 if (TOKEN && USER) {
-  api('GET', '/api/active').then(() => enterApp()).catch(() => logout());
-} 
+  api('GET', '/api/active').then(function() { enterApp(); }).catch(function() { logout(); });
+}
 
 // ===== 页面切换 =====
 function switchTab(tab) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  const tabMap = { instant: 0, duration: 1, history: 2 };
+  document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
+  document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active'); });
+  var tabMap = { instant: 0, duration: 1, history: 2 };
   document.getElementById(tab + 'Page').classList.add('active');
   document.querySelectorAll('.nav-item')[tabMap[tab]].classList.add('active');
   if (tab === 'history') loadHistory();
 }
 
-// ===== 数据加载 =====
-async function loadData() {
-  try {
-    const [today, active] = await Promise.all([
-      api('GET', '/api/today'),
-      api('GET', '/api/active')
-    ]);
-    renderInstantList(today.instants);
-    renderDurationList(today.durations, active);
-    renderActiveBanner(active);
-    updateLastDiaper(today.instants);
-  } catch (err) {
-    console.error('加载数据失败:', err);
+// ===== 设置弹窗 =====
+function toggleSettings(id) {
+  var el = document.getElementById(id);
+  var isShow = el.classList.contains('show');
+  document.querySelectorAll('.settings-popup').forEach(function(p) { p.classList.remove('show'); });
+  if (!isShow) el.classList.add('show');
+}
+document.addEventListener('click', function(e) {
+  if (!e.target.classList.contains('user-badge')) {
+    document.querySelectorAll('.settings-popup').forEach(function(p) { p.classList.remove('show'); });
   }
+});
+
+// ===== 数据加载 =====
+function loadData() {
+  Promise.all([
+    api('GET', '/api/recent?days=10'),
+    api('GET', '/api/active')
+  ]).then(function(results) {
+    var data = results[0];
+    var active = results[1];
+    renderInstantList(data.instants);
+    renderDurationList(data.durations, active);
+    renderActiveBanner(active);
+    updateLastDiaper(data.instants);
+  }).catch(function(err) {
+    console.error('加载数据失败:', err);
+  });
+}
+
+// ===== 日期分组工具 =====
+function getDateKey(isoStr) {
+  var d = new Date(isoStr);
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
+function getDateLabel(dateKey) {
+  var today = new Date();
+  var todayKey = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+  var yest = new Date(today);
+  yest.setDate(yest.getDate() - 1);
+  var yestKey = yest.getFullYear() + '-' + String(yest.getMonth() + 1).padStart(2, '0') + '-' + String(yest.getDate()).padStart(2, '0');
+  if (dateKey === todayKey) return '今天';
+  if (dateKey === yestKey) return '昨天';
+  var parts = dateKey.split('-');
+  return parseInt(parts[1]) + '月' + parseInt(parts[2]) + '日';
+}
+
+function groupByDate(records, timeField) {
+  var groups = {};
+  var order = [];
+  records.forEach(function(r) {
+    var key = getDateKey(r[timeField]);
+    if (!groups[key]) { groups[key] = []; order.push(key); }
+    groups[key].push(r);
+  });
+  return { groups: groups, order: order };
+}
+
+// ===== 图片缩略图渲染 =====
+function renderThumbs(images, recordType, recordId) {
+  var html = '<div class="record-images">';
+  if (images && images.length > 0) {
+    images.forEach(function(img) {
+      html += '<div class="img-thumb-wrap">';
+      html += '<img src="' + img.url + '" onclick="previewImage(' + img.id + ', \'' + img.url + '\')">';
+      html += '</div>';
+    });
+  }
+  html += '<div class="img-upload-btn" onclick="triggerUpload(\'' + recordType + '\', ' + recordId + ')">+</div>';
+  html += '</div>';
+  return html;
+}
+
+// ===== 图片上传 =====
+function triggerUpload(type, id) {
+  pendingUpload.type = type;
+  pendingUpload.id = id;
+  document.getElementById('imageInput').value = '';
+  document.getElementById('imageInput').click();
+}
+
+function handleImageSelected(input) {
+  if (!input.files || !input.files[0]) return;
+  var file = input.files[0];
+  compressImage(file).then(function(blob) {
+    var fd = new FormData();
+    fd.append('image', blob, 'photo.jpg');
+    fd.append('record_type', pendingUpload.type);
+    fd.append('record_id', pendingUpload.id);
+    return fetch(API + '/api/upload', {
+      method: 'POST',
+      headers: { 'x-auth-token': TOKEN },
+      body: fd
+    });
+  }).then(function(res) { return res.json(); }).then(function(data) {
+    if (data.success) {
+      showToast('图片已上传 ✓');
+      loadData();
+    }
+  }).catch(function(err) {
+    showToast('上传失败');
+    console.error(err);
+  });
+}
+
+function compressImage(file) {
+  return new Promise(function(resolve) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var img = new Image();
+      img.onload = function() {
+        var canvas = document.createElement('canvas');
+        var maxDim = 1200;
+        var w = img.width;
+        var h = img.height;
+        if (w > maxDim || h > maxDim) {
+          if (w > h) { h = Math.round(h * maxDim / w); w = maxDim; }
+          else { w = Math.round(w * maxDim / h); h = maxDim; }
+        }
+        canvas.width = w;
+        canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        canvas.toBlob(function(blob) { resolve(blob); }, 'image/jpeg', 0.7);
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+// ===== 图片预览 =====
+function previewImage(imgId, url) {
+  previewingImgId = imgId;
+  document.getElementById('imgPreviewSrc').src = url;
+  document.getElementById('imgPreview').classList.add('show');
+}
+
+function closeImgPreview() {
+  document.getElementById('imgPreview').classList.remove('show');
+  previewingImgId = 0;
+}
+
+function deletePreviewImage() {
+  if (!previewingImgId) return;
+  if (!confirm('确定删除这张图片？')) return;
+  api('DELETE', '/api/images/' + previewingImgId).then(function() {
+    closeImgPreview();
+    showToast('图片已删除');
+    loadData();
+  });
 }
 
 // ===== 时间点记录 =====
-async function quickInstant(type, label) {
-  const now = new Date();
-  const localISO = toLocalISO(now);
-  await api('POST', '/api/instant', {
+function quickInstant(type, label) {
+  var now = new Date();
+  var localISO = toLocalISO(now);
+  api('POST', '/api/instant', {
     event_type: type,
     event_label: label,
     recorded_by: USER,
     recorded_at: localISO
+  }).then(function() {
+    showToast('已记录 ' + label + ' ✓');
+    loadData();
   });
-  showToast(`已记录 ${label} ✓`);
-  loadData();
 }
 
 function renderInstantList(records) {
-  const el = document.getElementById('instantList');
+  var el = document.getElementById('instantRecords');
   if (!records || records.length === 0) {
-    el.innerHTML = '<div class="empty-state"><div class="empty-icon">&#x1F4CB;</div><div class="empty-text">今天还没有记录</div></div>';
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">&#x1F4CB;</div><div class="empty-text">暂无记录</div></div>';
     return;
   }
-  el.innerHTML = records.map(r => `
-    <div class="record-item">
-      <div>
-        <div style="font-size: 15px; font-weight: 600;">${getEmoji(r.event_type)} ${r.event_label}</div>
-        <div class="record-time">${formatTime(r.recorded_at)} · <span class="record-by">${r.recorded_by}</span></div>
-      </div>
-      <div style="display: flex; align-items: center; gap: 8px;">
-        <span style="font-size: 13px; color: #E91E63;">${timeAgo(r.recorded_at)}</span>
-        <span class="delete-btn" onclick="deleteInstant(${r.id})">×</span>
-      </div>
-    </div>
-  `).join('');
+  var grouped = groupByDate(records, 'recorded_at');
+  var html = '';
+  grouped.order.forEach(function(dateKey) {
+    var label = getDateLabel(dateKey);
+    var items = grouped.groups[dateKey];
+    html += '<div class="card"><div class="date-group-title">' + label + '</div>';
+    items.forEach(function(r) {
+      html += '<div class="record-item">';
+      html += '<div class="record-main">';
+      html += '<div>';
+      html += '<div style="font-size:15px;font-weight:600">' + getEmoji(r.event_type) + ' ' + r.event_label + '</div>';
+      html += '<div class="record-time">' + formatTime(r.recorded_at) + ' · <span class="record-by">' + r.recorded_by + '</span></div>';
+      html += '</div>';
+      html += '<div style="display:flex;align-items:center;gap:8px">';
+      html += '<span style="font-size:13px;color:#E91E63">' + timeAgo(r.recorded_at) + '</span>';
+      html += '<span class="delete-btn" onclick="deleteInstant(' + r.id + ')">×</span>';
+      html += '</div>';
+      html += '</div>';
+      html += renderThumbs(r.images, 'instant', r.id);
+      html += '</div>';
+    });
+    html += '</div>';
+  });
+  el.innerHTML = html;
 }
 
 function updateLastDiaper(records) {
-  const diaper = records.find(r => r.event_type === 'diaper');
-  const card = document.getElementById('lastInstantCard');
+  var diaper = null;
+  for (var i = 0; i < records.length; i++) {
+    if (records[i].event_type === 'diaper') { diaper = records[i]; break; }
+  }
+  var card = document.getElementById('lastInstantCard');
   if (diaper) {
     card.style.display = 'block';
     document.getElementById('lastDiaperAgo').textContent = timeAgo(diaper.recorded_at);
@@ -520,113 +662,116 @@ function updateLastDiaper(records) {
   }
 }
 
-async function deleteInstant(id) {
+function deleteInstant(id) {
   if (!confirm('确定删除这条记录？')) return;
-  await api('DELETE', `/api/instant/${id}`);
-  loadData();
+  api('DELETE', '/api/instant/' + id).then(function() { loadData(); });
 }
 
 // ===== 持续时间记录 =====
-async function startDuration(type, label) {
-  const now = new Date();
-  const localISO = toLocalISO(now);
-  await api('POST', '/api/duration/start', {
+function startDuration(type, label) {
+  var now = new Date();
+  var localISO = toLocalISO(now);
+  api('POST', '/api/duration/start', {
     event_type: type,
     event_label: label,
     started_by: USER,
     started_at: localISO
+  }).then(function() {
+    showToast(label + ' 开始计时 ▶');
+    loadData();
   });
-  showToast(`${label} 开始计时 ▶`);
-  loadData();
 }
 
-async function endDuration(id) {
-  await api('POST', `/api/duration/end/${id}`, { ended_by: USER });
-  showToast('已结束 ✓');
-  loadData();
+function endDuration(id) {
+  api('POST', '/api/duration/end/' + id, { ended_by: USER }).then(function() {
+    showToast('已结束 ✓');
+    loadData();
+  });
 }
 
 function renderDurationList(allRecords, activeRecords) {
-  // 进行中的
-  const activeSection = document.getElementById('activeEventsSection');
-  const activeList = document.getElementById('activeEventsList');
-  
+  var activeSection = document.getElementById('activeEventsSection');
+  var activeList = document.getElementById('activeEventsList');
   if (activeRecords && activeRecords.length > 0) {
     activeSection.style.display = 'block';
-    activeList.innerHTML = activeRecords.map(r => {
-      const elapsed = getElapsedMinutes(r.started_at);
-      return `
-        <div class="card active-event">
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <div>
-              <div style="font-size: 16px; font-weight: 700;">${getEmoji(r.event_type)} ${r.event_label}</div>
-              <div class="record-time">${formatTime(r.started_at)} 开始 · ${r.started_by}</div>
-            </div>
-            <div style="text-align: right;">
-              <div class="timer" id="timer-${r.id}">${formatDuration(elapsed)}</div>
-            </div>
-          </div>
-          <div style="display: flex; gap: 8px; margin-top: 12px;">
-            <button class="btn btn-danger btn-block" onclick="endDuration(${r.id})">⏹ 结束</button>
-            <button class="btn btn-outline" onclick="showEditModal(${r.id})" style="flex-shrink: 0;">✏️</button>
-          </div>
-        </div>
-      `;
+    activeList.innerHTML = activeRecords.map(function(r) {
+      var elapsed = getElapsedMinutes(r.started_at);
+      return '<div class="card active-event">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center">' +
+        '<div>' +
+        '<div style="font-size:16px;font-weight:700">' + getEmoji(r.event_type) + ' ' + r.event_label + '</div>' +
+        '<div class="record-time">' + formatTime(r.started_at) + ' 开始 · ' + r.started_by + '</div>' +
+        '</div>' +
+        '<div style="text-align:right"><div class="timer" id="timer-' + r.id + '">' + formatDuration(elapsed) + '</div></div>' +
+        '</div>' +
+        '<div style="display:flex;gap:8px;margin-top:12px">' +
+        '<button class="btn btn-danger btn-block" onclick="endDuration(' + r.id + ')">⏹ 结束</button>' +
+        '<button class="btn btn-outline" onclick="showEditModal(' + r.id + ')" style="flex-shrink:0">✏️</button>' +
+        '</div>' +
+        renderThumbs(r.images || [], 'duration', r.id) +
+        '</div>';
     }).join('');
-    // 启动定时器
     startTimers(activeRecords);
   } else {
     activeSection.style.display = 'none';
     activeList.innerHTML = '';
   }
 
-  // 已完成的
-  const completedRecords = allRecords.filter(r => r.ended_at);
-  const durationList = document.getElementById('durationList');
-  if (completedRecords.length === 0) {
-    durationList.innerHTML = '<div class="empty-state"><div class="empty-icon">&#x1F4CB;</div><div class="empty-text">今天还没有完成的活动</div></div>';
+  var completed = allRecords.filter(function(r) { return r.ended_at; });
+  var el = document.getElementById('durationRecords');
+  if (completed.length === 0) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">&#x1F4CB;</div><div class="empty-text">暂无完成的活动</div></div>';
     return;
   }
-  durationList.innerHTML = completedRecords.map(r => `
-    <div class="record-item">
-      <div>
-        <div style="font-size: 15px; font-weight: 600;">${getEmoji(r.event_type)} ${r.event_label}</div>
-        <div class="record-time">${formatTime(r.started_at)} → ${formatTime(r.ended_at)}</div>
-        <div class="record-time">${r.started_by}开始 · ${r.ended_by}结束</div>
-      </div>
-      <div style="text-align: right;">
-        <div style="font-size: 18px; font-weight: 700; color: #4CAF50;">${formatDuration(r.duration_minutes)}</div>
-        <span class="delete-btn" onclick="deleteDuration(${r.id})">×</span>
-      </div>
-    </div>
-  `).join('');
+  var grouped = groupByDate(completed, 'started_at');
+  var html = '';
+  grouped.order.forEach(function(dateKey) {
+    var label = getDateLabel(dateKey);
+    var items = grouped.groups[dateKey];
+    html += '<div class="card"><div class="date-group-title">' + label + '</div>';
+    items.forEach(function(r) {
+      html += '<div class="record-item">';
+      html += '<div class="record-main">';
+      html += '<div>';
+      html += '<div style="font-size:15px;font-weight:600">' + getEmoji(r.event_type) + ' ' + r.event_label + '</div>';
+      html += '<div class="record-time">' + formatTime(r.started_at) + ' → ' + formatTime(r.ended_at) + '</div>';
+      html += '<div class="record-time">' + r.started_by + '开始 · ' + r.ended_by + '结束</div>';
+      html += '</div>';
+      html += '<div style="text-align:right">';
+      html += '<div style="font-size:18px;font-weight:700;color:#4CAF50">' + formatDuration(r.duration_minutes) + '</div>';
+      html += '<span class="delete-btn" onclick="deleteDuration(' + r.id + ')">×</span>';
+      html += '</div>';
+      html += '</div>';
+      html += renderThumbs(r.images, 'duration', r.id);
+      html += '</div>';
+    });
+    html += '</div>';
+  });
+  el.innerHTML = html;
 }
 
 function startTimers(activeRecords) {
-  // 清理旧定时器
-  Object.values(activeTimers).forEach(t => clearInterval(t));
-  activeTimers = {};
-  
-  activeRecords.forEach(r => {
-    activeTimers[r.id] = setInterval(() => {
-      const el = document.getElementById(`timer-${r.id}`);
-      if (el) {
-        el.textContent = formatDuration(getElapsedMinutes(r.started_at));
-      }
+  Object.keys(activeTimers).forEach(function(k) {
+    if (k !== 'banner') clearInterval(activeTimers[k]);
+  });
+  activeRecords.forEach(function(r) {
+    activeTimers[r.id] = setInterval(function() {
+      var el = document.getElementById('timer-' + r.id);
+      if (el) el.textContent = formatDuration(getElapsedMinutes(r.started_at));
     }, 1000);
   });
 }
 
 function renderActiveBanner(active) {
-  const banner = document.getElementById('activeBanner');
+  var banner = document.getElementById('activeBanner');
   if (active && active.length > 0) {
     banner.classList.add('show');
     document.body.classList.add('has-banner');
-    const r = active[0];
-    const updateBanner = () => {
-      const elapsed = getElapsedMinutes(r.started_at);
-      document.getElementById('bannerText').innerHTML = 
-        `${getEmoji(r.event_type)} ${r.event_label} 进行中 <span class="banner-timer">${formatDuration(elapsed)}</span>`;
+    var r = active[0];
+    var updateBanner = function() {
+      var elapsed = getElapsedMinutes(r.started_at);
+      document.getElementById('bannerText').innerHTML =
+        getEmoji(r.event_type) + ' ' + r.event_label + ' 进行中 <span class="banner-timer">' + formatDuration(elapsed) + '</span>';
     };
     updateBanner();
     if (activeTimers['banner']) clearInterval(activeTimers['banner']);
@@ -634,109 +779,212 @@ function renderActiveBanner(active) {
   } else {
     banner.classList.remove('show');
     document.body.classList.remove('has-banner');
+    if (activeTimers['banner']) { clearInterval(activeTimers['banner']); delete activeTimers['banner']; }
   }
 }
 
-async function deleteDuration(id) {
+function deleteDuration(id) {
   if (!confirm('确定删除这条记录？')) return;
-  await api('DELETE', `/api/duration/${id}`);
-  loadData();
+  api('DELETE', '/api/duration/' + id).then(function() { loadData(); });
 }
 
 // ===== 修改事件类型 =====
-let editingId = null;
 function showEditModal(id) {
   editingId = id;
-  const types = [
+  var types = [
     ['sunbath', '☀️ 晒太阳'], ['breastfeed', '🍼 吃奶'], ['tummy', '👶 趴趴时间'],
     ['play', '🎨 玩耍'], ['nap', '😴 小睡'], ['walk', '🚶 户外散步']
   ];
-  document.getElementById('editEventOptions').innerHTML = types.map(([type, label]) =>
-    `<button class="btn btn-outline" onclick="editDuration('${type}', '${label.slice(2)}')">${label}</button>`
-  ).join('');
+  document.getElementById('editEventOptions').innerHTML = types.map(function(t) {
+    return '<button class="btn btn-outline" onclick="editDuration(\'' + t[0] + '\', \'' + t[1].slice(2) + '\')">' + t[1] + '</button>';
+  }).join('');
   document.getElementById('editModal').classList.add('show');
 }
 
-async function editDuration(type, label) {
-  await api('PUT', `/api/duration/${editingId}`, { event_type: type, event_label: label });
-  closeModal('editModal');
-  showToast('已修改 ✓');
-  loadData();
+function editDuration(type, label) {
+  api('PUT', '/api/duration/' + editingId, { event_type: type, event_label: label }).then(function() {
+    closeModal('editModal');
+    showToast('已修改 ✓');
+    loadData();
+  });
 }
 
 // ===== 历史记录 =====
-let historyFilter = 'all';
-async function loadHistory() {
-  try {
-    const [instants, durations] = await Promise.all([
-      api('GET', '/api/instant?limit=50'),
-      api('GET', '/api/duration?limit=50')
-    ]);
-    renderHistory(instants, durations);
-  } catch(e) {
+function loadHistory() {
+  Promise.all([
+    api('GET', '/api/instant?limit=100'),
+    api('GET', '/api/duration?limit=100')
+  ]).then(function(results) {
+    renderHistory(results[0], results[1]);
+  }).catch(function(e) {
     console.error('加载历史失败:', e);
-  }
+  });
 }
 
 function filterHistory(type, el) {
-  document.querySelectorAll('#historyPage .tag').forEach(t => t.classList.remove('selected'));
+  document.querySelectorAll('#historyPage .tag').forEach(function(t) { t.classList.remove('selected'); });
   el.classList.add('selected');
   historyFilter = type;
   loadHistory();
 }
 
 function renderHistory(instants, durations) {
-  const list = document.getElementById('historyList');
-  let all = [];
-  
-  instants.forEach(r => {
+  var list = document.getElementById('historyList');
+  var all = [];
+  instants.forEach(function(r) {
     if (historyFilter !== 'all' && r.event_type !== historyFilter) return;
-    all.push({ time: r.recorded_at, html: `
-      <div class="record-item">
-        <div>
-          <div style="font-weight: 600;">${getEmoji(r.event_type)} ${r.event_label}</div>
-          <div class="record-time">${formatDate(r.recorded_at)} ${formatTime(r.recorded_at)} · ${r.recorded_by}</div>
-        </div>
-        <span class="delete-btn" onclick="deleteInstant(${r.id})">×</span>
-      </div>
-    `});
+    all.push({ time: r.recorded_at, html:
+      '<div class="record-item"><div><div style="font-weight:600">' + getEmoji(r.event_type) + ' ' + r.event_label + '</div>' +
+      '<div class="record-time">' + formatDate(r.recorded_at) + ' ' + formatTime(r.recorded_at) + ' · ' + r.recorded_by + '</div>' +
+      '</div><span class="delete-btn" onclick="deleteInstant(' + r.id + ')">×</span></div>'
+    });
   });
-  
-  durations.forEach(r => {
+  durations.forEach(function(r) {
     if (historyFilter !== 'all' && r.event_type !== historyFilter) return;
-    all.push({ time: r.started_at, html: `
-      <div class="record-item">
-        <div>
-          <div style="font-weight: 600;">${getEmoji(r.event_type)} ${r.event_label} ${r.ended_at ? '(' + formatDuration(r.duration_minutes) + ')' : '<span style="color:#E91E63">进行中</span>'}</div>
-          <div class="record-time">${formatDate(r.started_at)} ${formatTime(r.started_at)}${r.ended_at ? ' → ' + formatTime(r.ended_at) : ''}</div>
-          <div class="record-time">${r.started_by}${r.ended_by ? ' → ' + r.ended_by : ''}</div>
-        </div>
-        <span class="delete-btn" onclick="deleteDuration(${r.id})">×</span>
-      </div>
-    `});
+    var status = r.ended_at ? '(' + formatDuration(r.duration_minutes) + ')' : '<span style="color:#E91E63">进行中</span>';
+    var timeRange = formatTime(r.started_at) + (r.ended_at ? ' → ' + formatTime(r.ended_at) : '');
+    var who = r.started_by + (r.ended_by ? ' → ' + r.ended_by : '');
+    all.push({ time: r.started_at, html:
+      '<div class="record-item"><div><div style="font-weight:600">' + getEmoji(r.event_type) + ' ' + r.event_label + ' ' + status + '</div>' +
+      '<div class="record-time">' + formatDate(r.started_at) + ' ' + timeRange + '</div>' +
+      '<div class="record-time">' + who + '</div>' +
+      '</div><span class="delete-btn" onclick="deleteDuration(' + r.id + ')">×</span></div>'
+    });
   });
-
-  all.sort((a, b) => new Date(b.time) - new Date(a.time));
-  
+  all.sort(function(a, b) { return new Date(b.time) - new Date(a.time); });
   if (all.length === 0) {
     list.innerHTML = '<div class="empty-state"><div class="empty-icon">&#x1F4CB;</div><div class="empty-text">暂无历史记录</div></div>';
     return;
   }
-
-  // 按日期分组
-  const groups = {};
-  all.forEach(item => {
-    const date = formatDate(item.time);
-    if (!groups[date]) groups[date] = [];
+  var groups = {};
+  var order = [];
+  all.forEach(function(item) {
+    var date = formatDate(item.time);
+    if (!groups[date]) { groups[date] = []; order.push(date); }
     groups[date].push(item.html);
   });
+  list.innerHTML = order.map(function(date) {
+    return '<div class="card"><div style="font-size:14px;font-weight:600;color:#999;margin-bottom:8px">' + date + '</div>' + groups[date].join('') + '</div>';
+  }).join('');
+}
 
-  list.innerHTML = Object.entries(groups).map(([date, items]) => `
-    <div class="card">
-      <div style="font-size: 14px; font-weight: 600; color: #999; margin-bottom: 8px;">${date}</div>
-      ${items.join('')}
-    </div>
-  `).join('');
+// ===== 管理后台 =====
+function showAdminLogin() {
+  document.getElementById('loginPage').style.display = 'none';
+  document.getElementById('adminPage').style.display = 'block';
+  document.getElementById('adminLoginSection').style.display = 'block';
+  document.getElementById('adminPanel').style.display = 'none';
+}
+
+function backToLogin() {
+  document.getElementById('adminPage').style.display = 'none';
+  document.getElementById('loginPage').style.display = 'flex';
+}
+
+function adminLogin() {
+  var pwd = document.getElementById('adminPasswordInput').value;
+  fetch(API + '/api/admin/auth', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ password: pwd })
+  }).then(function(res) { return res.json(); }).then(function(data) {
+    if (data.success) {
+      sessionStorage.setItem('xjl_admin_token', pwd);
+      document.getElementById('adminLoginSection').style.display = 'none';
+      document.getElementById('adminPanel').style.display = 'block';
+      document.getElementById('adminLoginError').textContent = '';
+      loadFamilies();
+    } else {
+      document.getElementById('adminLoginError').textContent = '密码错误';
+    }
+  }).catch(function() {
+    document.getElementById('adminLoginError').textContent = '网络错误';
+  });
+}
+
+function adminLogout() {
+  sessionStorage.removeItem('xjl_admin_token');
+  document.getElementById('adminPanel').style.display = 'none';
+  document.getElementById('adminLoginSection').style.display = 'block';
+  document.getElementById('adminPasswordInput').value = '';
+}
+
+function loadFamilies() {
+  adminApi('GET', '/api/admin/families').then(function(families) {
+    var el = document.getElementById('familyList');
+    if (families.length === 0) {
+      el.innerHTML = '<div style="color:#999;text-align:center;padding:20px">暂无家庭</div>';
+      return;
+    }
+    el.innerHTML = families.map(function(f) {
+      return '<div class="admin-family-item">' +
+        '<div>' +
+        '<div style="font-weight:600">' + escHtml(f.password) + (f.baby_name ? ' · 👶 ' + escHtml(f.baby_name) : '') + '</div>' +
+        '<div style="font-size:12px;color:#999">记录: ' + f.instantCount + '条时间点 + ' + f.durationCount + '条持续</div>' +
+        '</div>' +
+        '<div>' +
+        '<button class="admin-btn admin-btn-edit" onclick="editFamily(' + f.id + ', \'' + escAttr(f.password) + '\', \'' + escAttr(f.baby_name || '') + '\')">编辑</button>' +
+        '<button class="admin-btn admin-btn-del" onclick="deleteFamily(' + f.id + ')">删除</button>' +
+        '</div>' +
+        '</div>';
+    }).join('');
+  });
+}
+
+function addFamily() {
+  var pwd = document.getElementById('newFamilyPassword').value.trim();
+  var name = document.getElementById('newFamilyBabyName').value.trim();
+  if (!pwd) { document.getElementById('addFamilyError').textContent = '密码不能为空'; return; }
+  adminApi('POST', '/api/admin/families', { password: pwd, baby_name: name }).then(function(data) {
+    if (data.error) { document.getElementById('addFamilyError').textContent = data.error; return; }
+    document.getElementById('newFamilyPassword').value = '';
+    document.getElementById('newFamilyBabyName').value = '';
+    document.getElementById('addFamilyError').textContent = '';
+    showToast('已添加');
+    loadFamilies();
+  }).catch(function() {
+    document.getElementById('addFamilyError').textContent = '添加失败';
+  });
+}
+
+function editFamily(id, pwd, name) {
+  editingFamilyId = id;
+  document.getElementById('editFamilyPassword').value = pwd;
+  document.getElementById('editFamilyBabyName').value = name;
+  document.getElementById('editFamilyError').textContent = '';
+  document.getElementById('editFamilyModal').classList.add('show');
+}
+
+function saveFamily() {
+  var pwd = document.getElementById('editFamilyPassword').value.trim();
+  var name = document.getElementById('editFamilyBabyName').value.trim();
+  if (!pwd) { document.getElementById('editFamilyError').textContent = '密码不能为空'; return; }
+  adminApi('PUT', '/api/admin/families/' + editingFamilyId, { password: pwd, baby_name: name }).then(function(data) {
+    if (data.error) { document.getElementById('editFamilyError').textContent = data.error; return; }
+    closeModal('editFamilyModal');
+    showToast('已保存');
+    loadFamilies();
+  }).catch(function() {
+    document.getElementById('editFamilyError').textContent = '保存失败';
+  });
+}
+
+function deleteFamily(id) {
+  if (!confirm('确定删除？该家庭的所有记录和图片都会被删除！')) return;
+  adminApi('DELETE', '/api/admin/families/' + id).then(function() {
+    showToast('已删除');
+    loadFamilies();
+  });
+}
+
+function escHtml(s) {
+  var div = document.createElement('div');
+  div.textContent = s;
+  return div.innerHTML;
+}
+
+function escAttr(s) {
+  return s.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"');
 }
 
 // ===== 弹窗 =====
@@ -744,8 +992,7 @@ function showInstantModal() { document.getElementById('instantModal').classList.
 function showDurationModal() { document.getElementById('durationModal').classList.add('show'); }
 function closeModal(id) { document.getElementById(id).classList.remove('show'); }
 
-// 点击遮罩关闭
-document.querySelectorAll('.modal-overlay').forEach(overlay => {
+document.querySelectorAll('.modal-overlay').forEach(function(overlay) {
   overlay.addEventListener('click', function(e) {
     if (e.target === this) this.classList.remove('show');
   });
@@ -753,58 +1000,48 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => {
 
 // ===== Toast =====
 function showToast(msg) {
-  const toast = document.createElement('div');
+  var toast = document.createElement('div');
   toast.textContent = msg;
-  Object.assign(toast.style, {
-    position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
-    background: 'rgba(0,0,0,0.75)', color: 'white', padding: '12px 24px',
-    borderRadius: '12px', fontSize: '15px', fontWeight: '600', zIndex: '999',
-    animation: 'fadeIn 0.2s'
-  });
+  toast.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.75);color:white;padding:12px 24px;border-radius:12px;font-size:15px;font-weight:600;z-index:999';
   document.body.appendChild(toast);
-  setTimeout(() => toast.remove(), 1500);
+  setTimeout(function() { toast.remove(); }, 1500);
 }
 
 // ===== 工具函数 =====
 function toLocalISO(date) {
-  const offset = date.getTimezoneOffset();
-  const local = new Date(date.getTime() - offset * 60000);
+  var offset = date.getTimezoneOffset();
+  var local = new Date(date.getTime() - offset * 60000);
   return local.toISOString().slice(0, -1);
 }
 
 function formatTime(isoStr) {
-  const d = new Date(isoStr);
-  return d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
+  var d = new Date(isoStr);
+  return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
 }
 
 function formatDate(isoStr) {
-  const d = new Date(isoStr);
-  return `${d.getMonth() + 1}月${d.getDate()}日`;
+  var d = new Date(isoStr);
+  return (d.getMonth() + 1) + '月' + d.getDate() + '日';
 }
 
 function timeAgo(isoStr) {
-  const now = new Date();
-  const then = new Date(isoStr);
-  const diffMs = now - then;
-  const mins = Math.floor(diffMs / 60000);
+  var now = new Date();
+  var then = new Date(isoStr);
+  var mins = Math.floor((now - then) / 60000);
   if (mins < 1) return '刚刚';
-  if (mins < 60) return `${mins}分钟`;
-  const hours = Math.floor(mins / 60);
-  const remainMins = mins % 60;
-  if (hours < 24) return remainMins > 0 ? `${hours}小时${remainMins}分钟` : `${hours}小时`;
-  const days = Math.floor(hours / 24);
-  return `${days}天`;
+  if (mins < 60) return mins + '分钟';
+  var hours = Math.floor(mins / 60);
+  var rm = mins % 60;
+  if (hours < 24) return rm > 0 ? hours + '小时' + rm + '分钟' : hours + '小时';
+  return Math.floor(hours / 24) + '天';
 }
 
 function formatDuration(minutes) {
-  if (minutes < 1) {
-    const secs = Math.round(minutes * 60);
-    return `${secs}秒`;
-  }
-  const h = Math.floor(minutes / 60);
-  const m = Math.floor(minutes % 60);
-  if (h > 0) return `${h}时${m}分`;
-  return `${m}分钟`;
+  if (minutes < 1) return Math.round(minutes * 60) + '秒';
+  var h = Math.floor(minutes / 60);
+  var m = Math.floor(minutes % 60);
+  if (h > 0) return h + '时' + m + '分';
+  return m + '分钟';
 }
 
 function getElapsedMinutes(startISO) {
@@ -812,7 +1049,7 @@ function getElapsedMinutes(startISO) {
 }
 
 function getEmoji(type) {
-  const map = {
+  var map = {
     diaper: '🧷', feed: '🍼', breastfeed: '🍼', sunbath: '☀️',
     poop: '💩', bath: '🛁', sleep: '😴', wake: '🌞',
     medicine: '💊', tummy: '👶', play: '🎨', nap: '😴', walk: '🚶'
@@ -820,9 +1057,9 @@ function getEmoji(type) {
   return map[type] || '📝';
 }
 
-// ===== 注册 Service Worker =====
+// ===== Service Worker =====
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js').catch(() => {});
+  navigator.serviceWorker.register('/sw.js').catch(function() {});
 }
 </script>
 </body>
