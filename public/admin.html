@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>小记录 - 管理后台</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; color: #333; min-height: 100vh; }
+    .input { width: 100%; padding: 14px 16px; border: 2px solid #eee; border-radius: 12px; font-size: 16px; outline: none; transition: border-color 0.2s; }
+    .input:focus { border-color: #1976D2; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; padding: 12px 24px; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .btn:active { transform: scale(0.96); }
+    .btn-primary { background: #1976D2; color: white; }
+    .btn-primary:active { background: #1565C0; }
+    .btn-block { display: flex; width: 100%; }
+    .admin-header { text-align: center; padding: 20px 0; font-size: 20px; font-weight: 700; color: #333; }
+    .admin-card { background: white; border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .admin-family-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f0f0f0; }
+    .admin-family-item:last-child { border-bottom: none; }
+    .admin-btn { padding: 6px 12px; border: none; border-radius: 8px; font-size: 13px; cursor: pointer; margin-left: 6px; }
+    .admin-btn-edit { background: #E3F2FD; color: #1976D2; }
+    .admin-btn-del { background: #FFEBEE; color: #D32F2F; }
+    .admin-link { color: #999; font-size: 13px; cursor: pointer; text-decoration: underline; text-align: center; display: block; margin-top: 24px; }
+    .admin-link:active { color: #666; }
+    .container { max-width: 500px; margin: 0 auto; padding: 20px; min-height: 100vh; }
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); z-index: 300; justify-content: center; align-items: flex-end; }
+    .modal-overlay.show { display: flex; }
+    .modal { background: white; border-radius: 20px 20px 0 0; padding: 24px; width: 100%; max-width: 500px; max-height: 70vh; overflow-y: auto; animation: slideUp 0.3s ease; }
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    .modal-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; text-align: center; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <!-- 登录区域 -->
+  <div id="adminLoginSection">
+    <div class="admin-header">&#x1F512; 管理后台</div>
+    <div style="max-width: 320px; margin: 40px auto; text-align: center;">
+      <input class="input" id="adminPasswordInput" type="password" placeholder="输入管理员密码" style="text-align: center;">
+      <button class="btn btn-primary btn-block" style="margin-top: 16px;" onclick="adminLogin()">登录</button>
+      <div id="adminLoginError" style="color: #f44336; font-size: 13px; margin-top: 12px;"></div>
+      <a class="admin-link" href="/">← 返回首页</a>
+    </div>
+  </div>
+
+  <!-- 管理面板 -->
+  <div id="adminPanel" style="display: none;">
+    <div class="admin-header">
+      &#x2699;&#xFE0F; 家庭管理
+      <div style="font-size: 13px; font-weight: 400; color: #999; margin-top: 4px;">
+        <span onclick="adminLogout()" style="cursor: pointer; color: #1976D2;">退出管理</span>
+      </div>
+    </div>
+    <div class="admin-card">
+      <div style="font-size: 15px; font-weight: 600; margin-bottom: 12px;">添加新家庭</div>
+      <input class="input" id="newFamilyPassword" placeholder="家庭密码" style="margin-bottom: 8px;">
+      <input class="input" id="newFamilyBabyName" placeholder="宝宝名字（可选）">
+      <button class="btn btn-primary btn-block" style="margin-top: 12px;" onclick="addFamily()">添加</button>
+      <div id="addFamilyError" style="color: #f44336; font-size: 13px; margin-top: 8px;"></div>
+    </div>
+    <div class="admin-card">
+      <div style="font-size: 15px; font-weight: 600; margin-bottom: 12px;">已有家庭</div>
+      <div id="familyList"></div>
+    </div>
+    <a class="admin-link" href="/">← 返回首页</a>
+  </div>
+</div>
+
+<!-- 编辑家庭弹窗 -->
+<div class="modal-overlay" id="editFamilyModal">
+  <div class="modal">
+    <div class="modal-title">编辑家庭</div>
+    <input class="input" id="editFamilyPassword" placeholder="家庭密码" style="margin-bottom: 8px;">
+    <input class="input" id="editFamilyBabyName" placeholder="宝宝名字（可选）">
+    <div id="editFamilyError" style="color: #f44336; font-size: 13px; margin-top: 8px;"></div>
+    <button class="btn btn-primary btn-block" style="margin-top: 16px;" onclick="saveFamily()">保存</button>
+    <button class="btn btn-block" style="margin-top: 8px; background: #f5f5f5; color: #999;" onclick="closeModal('editFamilyModal')">取消</button>
+  </div>
+</div>
+
+<script>
+var API = '';
+var editingFamilyId = null;
+
+function adminApi(method, path, body) {
+  var adminToken = sessionStorage.getItem('xjl_admin_token') || '';
+  var opts = { method: method, headers: { 'Content-Type': 'application/json', 'x-admin-token': adminToken } };
+  if (body) opts.body = JSON.stringify(body);
+  return fetch(API + path, opts).then(function(res) {
+    if (res.status === 401) throw new Error('管理员未认证');
+    return res.json();
+  });
+}
+
+// 登录
+document.getElementById('adminPasswordInput').addEventListener('keyup', function(e) {
+  if (e.key === 'Enter') adminLogin();
+});
+
+function adminLogin() {
+  var pwd = document.getElementById('adminPasswordInput').value;
+  fetch(API + '/api/admin/auth', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ password: pwd })
+  }).then(function(res) { return res.json(); }).then(function(data) {
+    if (data.success) {
+      sessionStorage.setItem('xjl_admin_token', pwd);
+      document.getElementById('adminLoginSection').style.display = 'none';
+      document.getElementById('adminPanel').style.display = 'block';
+      document.getElementById('adminLoginError').textContent = '';
+      loadFamilies();
+    } else {
+      document.getElementById('adminLoginError').textContent = '密码错误';
+    }
+  }).catch(function() {
+    document.getElementById('adminLoginError').textContent = '网络错误';
+  });
+}
+
+function adminLogout() {
+  sessionStorage.removeItem('xjl_admin_token');
+  document.getElementById('adminPanel').style.display = 'none';
+  document.getElementById('adminLoginSection').style.display = 'block';
+  document.getElementById('adminPasswordInput').value = '';
+}
+
+// 家庭 CRUD
+function loadFamilies() {
+  adminApi('GET', '/api/admin/families').then(function(families) {
+    var el = document.getElementById('familyList');
+    if (families.length === 0) {
+      el.innerHTML = '<div style="color:#999;text-align:center;padding:20px">暂无家庭</div>';
+      return;
+    }
+    el.innerHTML = families.map(function(f) {
+      return '<div class="admin-family-item">' +
+        '<div>' +
+        '<div style="font-weight:600">' + escHtml(f.password) + (f.baby_name ? ' · &#x1F476; ' + escHtml(f.baby_name) : '') + '</div>' +
+        '<div style="font-size:12px;color:#999">记录: ' + f.instantCount + '条时间点 + ' + f.durationCount + '条持续</div>' +
+        '</div>' +
+        '<div>' +
+        '<button class="admin-btn admin-btn-edit" onclick="editFamily(' + f.id + ', \'' + escAttr(f.password) + '\', \'' + escAttr(f.baby_name || '') + '\')">编辑</button>' +
+        '<button class="admin-btn admin-btn-del" onclick="deleteFamily(' + f.id + ')">删除</button>' +
+        '</div>' +
+        '</div>';
+    }).join('');
+  });
+}
+
+function addFamily() {
+  var pwd = document.getElementById('newFamilyPassword').value.trim();
+  var name = document.getElementById('newFamilyBabyName').value.trim();
+  if (!pwd) { document.getElementById('addFamilyError').textContent = '密码不能为空'; return; }
+  adminApi('POST', '/api/admin/families', { password: pwd, baby_name: name }).then(function(data) {
+    if (data.error) { document.getElementById('addFamilyError').textContent = data.error; return; }
+    document.getElementById('newFamilyPassword').value = '';
+    document.getElementById('newFamilyBabyName').value = '';
+    document.getElementById('addFamilyError').textContent = '';
+    showToast('已添加');
+    loadFamilies();
+  }).catch(function() {
+    document.getElementById('addFamilyError').textContent = '添加失败';
+  });
+}
+
+function editFamily(id, pwd, name) {
+  editingFamilyId = id;
+  document.getElementById('editFamilyPassword').value = pwd;
+  document.getElementById('editFamilyBabyName').value = name;
+  document.getElementById('editFamilyError').textContent = '';
+  document.getElementById('editFamilyModal').classList.add('show');
+}
+
+function saveFamily() {
+  var pwd = document.getElementById('editFamilyPassword').value.trim();
+  var name = document.getElementById('editFamilyBabyName').value.trim();
+  if (!pwd) { document.getElementById('editFamilyError').textContent = '密码不能为空'; return; }
+  adminApi('PUT', '/api/admin/families/' + editingFamilyId, { password: pwd, baby_name: name }).then(function(data) {
+    if (data.error) { document.getElementById('editFamilyError').textContent = data.error; return; }
+    closeModal('editFamilyModal');
+    showToast('已保存');
+    loadFamilies();
+  }).catch(function() {
+    document.getElementById('editFamilyError').textContent = '保存失败';
+  });
+}
+
+function deleteFamily(id) {
+  if (!confirm('确定删除？该家庭的所有记录和图片都会被删除！')) return;
+  adminApi('DELETE', '/api/admin/families/' + id).then(function() {
+    showToast('已删除');
+    loadFamilies();
+  });
+}
+
+// 工具函数
+function escHtml(s) {
+  var div = document.createElement('div');
+  div.textContent = s;
+  return div.innerHTML;
+}
+
+function escAttr(s) {
+  return s.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"');
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('show');
+}
+
+document.querySelectorAll('.modal-overlay').forEach(function(overlay) {
+  overlay.addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('show');
+  });
+});
+
+function showToast(msg) {
+  var toast = document.createElement('div');
+  toast.textContent = msg;
+  toast.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.75);color:white;padding:12px 24px;border-radius:12px;font-size:15px;font-weight:600;z-index:999';
+  document.body.appendChild(toast);
+  setTimeout(function() { toast.remove(); }, 1500);
+}
+</script>
+</body>
+</html>

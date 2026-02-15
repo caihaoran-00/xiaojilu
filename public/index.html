@@ -88,16 +88,7 @@
     .img-preview-overlay img { max-width: 95%; max-height: 80vh; border-radius: 8px; }
     .img-preview-close { position: absolute; top: 16px; right: 16px; color: white; font-size: 32px; cursor: pointer; padding: 8px; z-index: 501; }
     .img-preview-delete { margin-top: 16px; padding: 10px 30px; background: #f44336; color: white; border: none; border-radius: 12px; font-size: 15px; cursor: pointer; }
-    #adminPage { display: none; padding: 20px; max-width: 500px; margin: 0 auto; min-height: 100vh; }
-    .admin-header { text-align: center; padding: 20px 0; font-size: 20px; font-weight: 700; color: #333; }
-    .admin-card { background: white; border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
-    .admin-family-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f0f0f0; }
-    .admin-family-item:last-child { border-bottom: none; }
-    .admin-btn { padding: 6px 12px; border: none; border-radius: 8px; font-size: 13px; cursor: pointer; margin-left: 6px; }
-    .admin-btn-edit { background: #E3F2FD; color: #1976D2; }
-    .admin-btn-del { background: #FFEBEE; color: #D32F2F; }
-    .admin-link { color: #ccc; font-size: 12px; margin-top: 24px; cursor: pointer; text-decoration: underline; }
-    .admin-link:active { color: #999; }
+
   </style>
 </head>
 <body>
@@ -141,51 +132,6 @@
     </div>
   </div>
   <div id="loginError" style="color: #f44336; font-size: 13px; margin-top: 12px;"></div>
-  <div class="admin-link" onclick="showAdminLogin()">管理入口</div>
-</div>
-
-<!-- 管理后台 -->
-<div id="adminPage">
-  <div id="adminLoginSection">
-    <div class="admin-header">&#x1F512; 管理后台</div>
-    <div style="max-width: 320px; margin: 40px auto; text-align: center;">
-      <input class="input" id="adminPasswordInput" type="password" placeholder="输入管理员密码" style="text-align: center;">
-      <button class="btn btn-primary btn-block" style="margin-top: 16px;" onclick="adminLogin()">登录</button>
-      <div id="adminLoginError" style="color: #f44336; font-size: 13px; margin-top: 12px;"></div>
-      <div class="admin-link" onclick="backToLogin()">返回登录页</div>
-    </div>
-  </div>
-  <div id="adminPanel" style="display: none;">
-    <div class="admin-header">
-      &#x2699;&#xFE0F; 家庭管理
-      <div style="font-size: 13px; font-weight: 400; color: #999; margin-top: 4px;">
-        <span onclick="adminLogout()" style="cursor: pointer; color: #E91E63;">退出管理</span>
-      </div>
-    </div>
-    <div class="admin-card">
-      <div style="font-size: 15px; font-weight: 600; margin-bottom: 12px;">添加新家庭</div>
-      <input class="input" id="newFamilyPassword" placeholder="家庭密码" style="margin-bottom: 8px;">
-      <input class="input" id="newFamilyBabyName" placeholder="宝宝名字（可选）">
-      <button class="btn btn-primary btn-block" style="margin-top: 12px;" onclick="addFamily()">添加</button>
-      <div id="addFamilyError" style="color: #f44336; font-size: 13px; margin-top: 8px;"></div>
-    </div>
-    <div class="admin-card">
-      <div style="font-size: 15px; font-weight: 600; margin-bottom: 12px;">已有家庭</div>
-      <div id="familyList"></div>
-    </div>
-  </div>
-</div>
-
-<!-- 编辑家庭弹窗 -->
-<div class="modal-overlay" id="editFamilyModal">
-  <div class="modal">
-    <div class="modal-title">编辑家庭</div>
-    <input class="input" id="editFamilyPassword" placeholder="家庭密码" style="margin-bottom: 8px;">
-    <input class="input" id="editFamilyBabyName" placeholder="宝宝名字（可选）">
-    <div id="editFamilyError" style="color: #f44336; font-size: 13px; margin-top: 8px;"></div>
-    <button class="btn btn-primary btn-block" style="margin-top: 16px;" onclick="saveFamily()">保存</button>
-    <button class="btn btn-block" style="margin-top: 8px; background: #f5f5f5; color: #999;" onclick="closeModal('editFamilyModal')">取消</button>
-  </div>
 </div>
 
 <!-- 主应用 -->
@@ -334,7 +280,6 @@ var activeTimers = {};
 var refreshInterval = null;
 var pendingUpload = { type: '', id: 0 };
 var previewingImgId = 0;
-var editingFamilyId = null;
 var editingId = null;
 var historyFilter = 'all';
 
@@ -344,16 +289,6 @@ function api(method, path, body) {
   if (body) opts.body = JSON.stringify(body);
   return fetch(API + path, opts).then(function(res) {
     if (res.status === 401) { logout(); throw new Error('未认证'); }
-    return res.json();
-  });
-}
-
-function adminApi(method, path, body) {
-  var adminToken = sessionStorage.getItem('xjl_admin_token') || '';
-  var opts = { method: method, headers: { 'Content-Type': 'application/json', 'x-admin-token': adminToken } };
-  if (body) opts.body = JSON.stringify(body);
-  return fetch(API + path, opts).then(function(res) {
-    if (res.status === 401) throw new Error('管理员未认证');
     return res.json();
   });
 }
@@ -395,7 +330,6 @@ function selectIdentity(name, el) {
 
 function enterApp() {
   document.getElementById('loginPage').style.display = 'none';
-  document.getElementById('adminPage').style.display = 'none';
   document.getElementById('mainApp').style.display = 'block';
   document.getElementById('bottomNav').style.display = 'flex';
   updateHeaders();
@@ -866,125 +800,6 @@ function renderHistory(instants, durations) {
   list.innerHTML = order.map(function(date) {
     return '<div class="card"><div style="font-size:14px;font-weight:600;color:#999;margin-bottom:8px">' + date + '</div>' + groups[date].join('') + '</div>';
   }).join('');
-}
-
-// ===== 管理后台 =====
-function showAdminLogin() {
-  document.getElementById('loginPage').style.display = 'none';
-  document.getElementById('adminPage').style.display = 'block';
-  document.getElementById('adminLoginSection').style.display = 'block';
-  document.getElementById('adminPanel').style.display = 'none';
-}
-
-function backToLogin() {
-  document.getElementById('adminPage').style.display = 'none';
-  document.getElementById('loginPage').style.display = 'flex';
-}
-
-function adminLogin() {
-  var pwd = document.getElementById('adminPasswordInput').value;
-  fetch(API + '/api/admin/auth', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ password: pwd })
-  }).then(function(res) { return res.json(); }).then(function(data) {
-    if (data.success) {
-      sessionStorage.setItem('xjl_admin_token', pwd);
-      document.getElementById('adminLoginSection').style.display = 'none';
-      document.getElementById('adminPanel').style.display = 'block';
-      document.getElementById('adminLoginError').textContent = '';
-      loadFamilies();
-    } else {
-      document.getElementById('adminLoginError').textContent = '密码错误';
-    }
-  }).catch(function() {
-    document.getElementById('adminLoginError').textContent = '网络错误';
-  });
-}
-
-function adminLogout() {
-  sessionStorage.removeItem('xjl_admin_token');
-  document.getElementById('adminPanel').style.display = 'none';
-  document.getElementById('adminLoginSection').style.display = 'block';
-  document.getElementById('adminPasswordInput').value = '';
-}
-
-function loadFamilies() {
-  adminApi('GET', '/api/admin/families').then(function(families) {
-    var el = document.getElementById('familyList');
-    if (families.length === 0) {
-      el.innerHTML = '<div style="color:#999;text-align:center;padding:20px">暂无家庭</div>';
-      return;
-    }
-    el.innerHTML = families.map(function(f) {
-      return '<div class="admin-family-item">' +
-        '<div>' +
-        '<div style="font-weight:600">' + escHtml(f.password) + (f.baby_name ? ' · 👶 ' + escHtml(f.baby_name) : '') + '</div>' +
-        '<div style="font-size:12px;color:#999">记录: ' + f.instantCount + '条时间点 + ' + f.durationCount + '条持续</div>' +
-        '</div>' +
-        '<div>' +
-        '<button class="admin-btn admin-btn-edit" onclick="editFamily(' + f.id + ', \'' + escAttr(f.password) + '\', \'' + escAttr(f.baby_name || '') + '\')">编辑</button>' +
-        '<button class="admin-btn admin-btn-del" onclick="deleteFamily(' + f.id + ')">删除</button>' +
-        '</div>' +
-        '</div>';
-    }).join('');
-  });
-}
-
-function addFamily() {
-  var pwd = document.getElementById('newFamilyPassword').value.trim();
-  var name = document.getElementById('newFamilyBabyName').value.trim();
-  if (!pwd) { document.getElementById('addFamilyError').textContent = '密码不能为空'; return; }
-  adminApi('POST', '/api/admin/families', { password: pwd, baby_name: name }).then(function(data) {
-    if (data.error) { document.getElementById('addFamilyError').textContent = data.error; return; }
-    document.getElementById('newFamilyPassword').value = '';
-    document.getElementById('newFamilyBabyName').value = '';
-    document.getElementById('addFamilyError').textContent = '';
-    showToast('已添加');
-    loadFamilies();
-  }).catch(function() {
-    document.getElementById('addFamilyError').textContent = '添加失败';
-  });
-}
-
-function editFamily(id, pwd, name) {
-  editingFamilyId = id;
-  document.getElementById('editFamilyPassword').value = pwd;
-  document.getElementById('editFamilyBabyName').value = name;
-  document.getElementById('editFamilyError').textContent = '';
-  document.getElementById('editFamilyModal').classList.add('show');
-}
-
-function saveFamily() {
-  var pwd = document.getElementById('editFamilyPassword').value.trim();
-  var name = document.getElementById('editFamilyBabyName').value.trim();
-  if (!pwd) { document.getElementById('editFamilyError').textContent = '密码不能为空'; return; }
-  adminApi('PUT', '/api/admin/families/' + editingFamilyId, { password: pwd, baby_name: name }).then(function(data) {
-    if (data.error) { document.getElementById('editFamilyError').textContent = data.error; return; }
-    closeModal('editFamilyModal');
-    showToast('已保存');
-    loadFamilies();
-  }).catch(function() {
-    document.getElementById('editFamilyError').textContent = '保存失败';
-  });
-}
-
-function deleteFamily(id) {
-  if (!confirm('确定删除？该家庭的所有记录和图片都会被删除！')) return;
-  adminApi('DELETE', '/api/admin/families/' + id).then(function() {
-    showToast('已删除');
-    loadFamilies();
-  });
-}
-
-function escHtml(s) {
-  var div = document.createElement('div');
-  div.textContent = s;
-  return div.innerHTML;
-}
-
-function escAttr(s) {
-  return s.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"');
 }
 
 // ===== 弹窗 =====
