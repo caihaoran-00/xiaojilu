@@ -82,6 +82,8 @@ PORT=3000 PASSWORD=baobao2024 ADMIN_PASSWORD=admin123 npm start
 - 创建新家庭（设置密码和宝宝名字）
 - 编辑已有家庭信息
 - 删除家庭（级联删除所有记录和图片）
+- 查看每个家庭的上次使用时间
+- 查看家庭记录详情（时间点/持续记录，支持分类筛选，含图片）
 
 ## 🛠 技术栈
 
@@ -140,6 +142,7 @@ xiaojilu/
 | POST | `/api/admin/families` | 创建家庭 |
 | PUT | `/api/admin/families/:id` | 编辑家庭 |
 | DELETE | `/api/admin/families/:id` | 删除家庭（级联） |
+| GET | `/api/admin/families/:id/records` | 查看家庭记录详情 |
 
 ## 📄 License
 

@@ -158,7 +158,18 @@ app.get('/api/admin/families', adminAuth, (req, res) => {
   const result = families.map(f => {
     const instantCount = db.prepare('SELECT COUNT(*) as c FROM instant_records WHERE family_id = ?').get(f.id).c;
     const durationCount = db.prepare('SELECT COUNT(*) as c FROM duration_records WHERE family_id = ?').get(f.id).c;
-    return { ...f, instantCount, durationCount };
+    // 获取上次使用时间（取时间点和持续记录中最晚的）
+    const lastInstant = db.prepare('SELECT recorded_at FROM instant_records WHERE family_id = ? ORDER BY recorded_at DESC LIMIT 1').get(f.id);
+    const lastDuration = db.prepare('SELECT started_at FROM duration_records WHERE family_id = ? ORDER BY started_at DESC LIMIT 1').get(f.id);
+    let lastActiveTime = null;
+    if (lastInstant && lastDuration) {
+      lastActiveTime = lastInstant.recorded_at > lastDuration.started_at ? lastInstant.recorded_at : lastDuration.started_at;
+    } else if (lastInstant) {
+      lastActiveTime = lastInstant.recorded_at;
+    } else if (lastDuration) {
+      lastActiveTime = lastDuration.started_at;
+    }
+    return { ...f, instantCount, durationCount, lastActiveTime };
   });
   res.json(result);
 });
@@ -186,6 +197,37 @@ app.put('/api/admin/families/:id', adminAuth, (req, res) => {
   params.push(req.params.id);
   db.prepare(`UPDATE families SET ${sets.join(', ')} WHERE id = ?`).run(...params);
   res.json({ success: true });
+});
+
+// 查看家庭记录详情
+app.get('/api/admin/families/:id/records', adminAuth, (req, res) => {
+  const familyId = req.params.id;
+  const limit = Math.min(Number(req.query.limit) || 50, 200);
+  const family = db.prepare('SELECT * FROM families WHERE id = ?').get(familyId);
+  if (!family) return res.status(404).json({ error: '家庭不存在' });
+
+  const instants = db.prepare(`
+    SELECT * FROM instant_records WHERE family_id = ? ORDER BY recorded_at DESC LIMIT ?
+  `).all(familyId, limit);
+
+  const durations = db.prepare(`
+    SELECT * FROM duration_records WHERE family_id = ? ORDER BY started_at DESC LIMIT ?
+  `).all(familyId, limit);
+
+  // 附带图片
+  const attachImages = (records, type) => {
+    return records.map(r => {
+      const imgs = db.prepare('SELECT id, filename FROM images WHERE record_type = ? AND record_id = ? AND family_id = ?')
+        .all(type, r.id, familyId);
+      return { ...r, images: imgs.map(i => ({ id: i.id, url: '/uploads/' + i.filename })) };
+    });
+  };
+
+  res.json({
+    family,
+    instants: attachImages(instants, 'instant'),
+    durations: attachImages(durations, 'duration')
+  });
 });
 
 app.delete('/api/admin/families/:id', adminAuth, (req, res) => {

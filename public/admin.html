@@ -14,21 +14,43 @@
     .btn-primary { background: #1976D2; color: white; }
     .btn-primary:active { background: #1565C0; }
     .btn-block { display: flex; width: 100%; }
+    .btn-sm { padding: 6px 14px; font-size: 13px; border-radius: 8px; }
     .admin-header { text-align: center; padding: 20px 0; font-size: 20px; font-weight: 700; color: #333; }
     .admin-card { background: white; border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
-    .admin-family-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f0f0f0; }
+    .admin-family-item { padding: 12px 0; border-bottom: 1px solid #f0f0f0; }
     .admin-family-item:last-child { border-bottom: none; }
-    .admin-btn { padding: 6px 12px; border: none; border-radius: 8px; font-size: 13px; cursor: pointer; margin-left: 6px; }
+    .family-row { display: flex; justify-content: space-between; align-items: center; }
+    .family-info { flex: 1; min-width: 0; }
+    .family-actions { display: flex; gap: 4px; flex-shrink: 0; }
+    .admin-btn { padding: 6px 12px; border: none; border-radius: 8px; font-size: 13px; cursor: pointer; }
     .admin-btn-edit { background: #E3F2FD; color: #1976D2; }
     .admin-btn-del { background: #FFEBEE; color: #D32F2F; }
+    .admin-btn-view { background: #E8F5E9; color: #2E7D32; }
     .admin-link { color: #999; font-size: 13px; cursor: pointer; text-decoration: underline; text-align: center; display: block; margin-top: 24px; }
     .admin-link:active { color: #666; }
     .container { max-width: 500px; margin: 0 auto; padding: 20px; min-height: 100vh; }
     .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); z-index: 300; justify-content: center; align-items: flex-end; }
     .modal-overlay.show { display: flex; }
-    .modal { background: white; border-radius: 20px 20px 0 0; padding: 24px; width: 100%; max-width: 500px; max-height: 70vh; overflow-y: auto; animation: slideUp 0.3s ease; }
+    .modal { background: white; border-radius: 20px 20px 0 0; padding: 24px; width: 100%; max-width: 500px; max-height: 80vh; overflow-y: auto; animation: slideUp 0.3s ease; }
     @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
     .modal-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; text-align: center; }
+    .last-active { font-size: 12px; color: #999; margin-top: 2px; }
+    .last-active .time { color: #4CAF50; font-weight: 500; }
+    .record-section-title { font-size: 14px; font-weight: 600; color: #1976D2; margin: 16px 0 8px; padding-bottom: 6px; border-bottom: 1px solid #eee; }
+    .record-section-title:first-child { margin-top: 0; }
+    .record-entry { padding: 8px 0; border-bottom: 1px solid #f8f8f8; font-size: 14px; }
+    .record-entry:last-child { border-bottom: none; }
+    .record-entry .rec-main { display: flex; justify-content: space-between; align-items: center; }
+    .record-entry .rec-label { font-weight: 600; }
+    .record-entry .rec-meta { font-size: 12px; color: #999; margin-top: 2px; }
+    .record-entry .rec-duration { font-size: 13px; font-weight: 600; color: #4CAF50; }
+    .record-entry .rec-active { font-size: 13px; font-weight: 600; color: #E91E63; }
+    .record-imgs { display: flex; gap: 4px; margin-top: 4px; flex-wrap: wrap; }
+    .record-imgs img { width: 40px; height: 40px; border-radius: 6px; object-fit: cover; border: 1px solid #eee; }
+    .empty-hint { text-align: center; color: #ccc; padding: 20px; font-size: 14px; }
+    .tab-bar { display: flex; gap: 8px; margin-bottom: 12px; }
+    .tab-btn { flex: 1; padding: 8px; border: 2px solid #eee; border-radius: 10px; background: white; font-size: 14px; font-weight: 500; cursor: pointer; text-align: center; color: #666; }
+    .tab-btn.active { border-color: #1976D2; background: #E3F2FD; color: #1976D2; }
   </style>
 </head>
 <body>
@@ -41,7 +63,7 @@
       <input class="input" id="adminPasswordInput" type="password" placeholder="输入管理员密码" style="text-align: center;">
       <button class="btn btn-primary btn-block" style="margin-top: 16px;" onclick="adminLogin()">登录</button>
       <div id="adminLoginError" style="color: #f44336; font-size: 13px; margin-top: 12px;"></div>
-      <a class="admin-link" href="/">← 返回首页</a>
+      <a class="admin-link" href="/">&#x2190; 返回首页</a>
     </div>
   </div>
 
@@ -64,7 +86,7 @@
       <div style="font-size: 15px; font-weight: 600; margin-bottom: 12px;">已有家庭</div>
       <div id="familyList"></div>
     </div>
-    <a class="admin-link" href="/">← 返回首页</a>
+    <a class="admin-link" href="/">&#x2190; 返回首页</a>
   </div>
 </div>
 
@@ -80,9 +102,25 @@
   </div>
 </div>
 
+<!-- 查看记录弹窗 -->
+<div class="modal-overlay" id="recordsModal">
+  <div class="modal">
+    <div class="modal-title" id="recordsModalTitle">家庭记录</div>
+    <div class="tab-bar">
+      <div class="tab-btn active" onclick="switchRecordTab('all', this)">全部</div>
+      <div class="tab-btn" onclick="switchRecordTab('instant', this)">时间点</div>
+      <div class="tab-btn" onclick="switchRecordTab('duration', this)">持续</div>
+    </div>
+    <div id="recordsContent"></div>
+    <button class="btn btn-block" style="margin-top: 16px; background: #f5f5f5; color: #999;" onclick="closeModal('recordsModal')">关闭</button>
+  </div>
+</div>
+
 <script>
 var API = '';
 var editingFamilyId = null;
+var currentRecords = { instants: [], durations: [] };
+var currentRecordTab = 'all';
 
 function adminApi(method, path, body) {
   var adminToken = sessionStorage.getItem('xjl_admin_token') || '';
@@ -136,14 +174,24 @@ function loadFamilies() {
       return;
     }
     el.innerHTML = families.map(function(f) {
+      var lastActiveStr = '';
+      if (f.lastActiveTime) {
+        lastActiveStr = '<div class="last-active">上次使用: <span class="time">' + formatDateTime(f.lastActiveTime) + '</span> (' + timeAgo(f.lastActiveTime) + ')</div>';
+      } else {
+        lastActiveStr = '<div class="last-active">尚未使用</div>';
+      }
       return '<div class="admin-family-item">' +
-        '<div>' +
-        '<div style="font-weight:600">' + escHtml(f.password) + (f.baby_name ? ' · &#x1F476; ' + escHtml(f.baby_name) : '') + '</div>' +
+        '<div class="family-row">' +
+        '<div class="family-info">' +
+        '<div style="font-weight:600">' + escHtml(f.password) + (f.baby_name ? ' &#xB7; &#x1F476; ' + escHtml(f.baby_name) : '') + '</div>' +
         '<div style="font-size:12px;color:#999">记录: ' + f.instantCount + '条时间点 + ' + f.durationCount + '条持续</div>' +
+        lastActiveStr +
         '</div>' +
-        '<div>' +
+        '<div class="family-actions">' +
+        '<button class="admin-btn admin-btn-view" onclick="viewRecords(' + f.id + ', \'' + escAttr(f.baby_name || f.password) + '\')">查看</button>' +
         '<button class="admin-btn admin-btn-edit" onclick="editFamily(' + f.id + ', \'' + escAttr(f.password) + '\', \'' + escAttr(f.baby_name || '') + '\')">编辑</button>' +
         '<button class="admin-btn admin-btn-del" onclick="deleteFamily(' + f.id + ')">删除</button>' +
+        '</div>' +
         '</div>' +
         '</div>';
     }).join('');
@@ -196,14 +244,109 @@ function deleteFamily(id) {
   });
 }
 
+// 查看记录
+function viewRecords(familyId, displayName) {
+  document.getElementById('recordsModalTitle').textContent = escHtml(displayName) + ' 的记录';
+  document.getElementById('recordsContent').innerHTML = '<div class="empty-hint">加载中...</div>';
+  currentRecordTab = 'all';
+  document.querySelectorAll('.tab-btn').forEach(function(t, i) {
+    t.classList.toggle('active', i === 0);
+  });
+  document.getElementById('recordsModal').classList.add('show');
+
+  adminApi('GET', '/api/admin/families/' + familyId + '/records?limit=100').then(function(data) {
+    currentRecords = data;
+    renderRecords();
+  }).catch(function() {
+    document.getElementById('recordsContent').innerHTML = '<div class="empty-hint">加载失败</div>';
+  });
+}
+
+function switchRecordTab(tab, el) {
+  currentRecordTab = tab;
+  document.querySelectorAll('.tab-btn').forEach(function(t) { t.classList.remove('active'); });
+  el.classList.add('active');
+  renderRecords();
+}
+
+function renderRecords() {
+  var el = document.getElementById('recordsContent');
+  var html = '';
+  var hasContent = false;
+
+  // 时间点记录
+  if (currentRecordTab === 'all' || currentRecordTab === 'instant') {
+    var instants = currentRecords.instants || [];
+    if (instants.length > 0) {
+      hasContent = true;
+      html += '<div class="record-section-title">&#x23F0; 时间点记录 (' + instants.length + ')</div>';
+      instants.forEach(function(r) {
+        html += '<div class="record-entry">';
+        html += '<div class="rec-main">';
+        html += '<div><span class="rec-label">' + getEmoji(r.event_type) + ' ' + escHtml(r.event_label) + '</span></div>';
+        html += '<div style="font-size:12px;color:#999">' + timeAgo(r.recorded_at) + '</div>';
+        html += '</div>';
+        html += '<div class="rec-meta">' + formatDateTime(r.recorded_at) + ' &#xB7; ' + escHtml(r.recorded_by) + '</div>';
+        if (r.images && r.images.length > 0) {
+          html += '<div class="record-imgs">';
+          r.images.forEach(function(img) { html += '<img src="' + img.url + '">'; });
+          html += '</div>';
+        }
+        html += '</div>';
+      });
+    }
+  }
+
+  // 持续记录
+  if (currentRecordTab === 'all' || currentRecordTab === 'duration') {
+    var durations = currentRecords.durations || [];
+    if (durations.length > 0) {
+      hasContent = true;
+      html += '<div class="record-section-title">&#x23F1;&#xFE0F; 持续记录 (' + durations.length + ')</div>';
+      durations.forEach(function(r) {
+        var status = '';
+        if (r.ended_at) {
+          status = '<span class="rec-duration">' + formatDuration(r.duration_minutes) + '</span>';
+        } else {
+          status = '<span class="rec-active">进行中</span>';
+        }
+        html += '<div class="record-entry">';
+        html += '<div class="rec-main">';
+        html += '<div><span class="rec-label">' + getEmoji(r.event_type) + ' ' + escHtml(r.event_label) + '</span></div>';
+        html += status;
+        html += '</div>';
+        html += '<div class="rec-meta">' + formatDateTime(r.started_at);
+        if (r.ended_at) html += ' &#x2192; ' + formatTime(r.ended_at);
+        html += ' &#xB7; ' + escHtml(r.started_by);
+        if (r.ended_by && r.ended_by !== r.started_by) html += ' &#x2192; ' + escHtml(r.ended_by);
+        html += '</div>';
+        if (r.images && r.images.length > 0) {
+          html += '<div class="record-imgs">';
+          r.images.forEach(function(img) { html += '<img src="' + img.url + '">'; });
+          html += '</div>';
+        }
+        html += '</div>';
+      });
+    }
+  }
+
+  if (!hasContent) {
+    html = '<div class="empty-hint">暂无记录</div>';
+  }
+
+  el.innerHTML = html;
+}
+
 // 工具函数
 function escHtml(s) {
+  if (!s) return '';
   var div = document.createElement('div');
   div.textContent = s;
   return div.innerHTML;
 }
 
 function escAttr(s) {
+  if (!s) return '';
   return s.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"');
 }
 
@@ -223,6 +366,54 @@ function showToast(msg) {
   toast.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.75);color:white;padding:12px 24px;border-radius:12px;font-size:15px;font-weight:600;z-index:999';
   document.body.appendChild(toast);
   setTimeout(function() { toast.remove(); }, 1500);
+}
+
+function formatDateTime(isoStr) {
+  if (!isoStr) return '--';
+  var d = new Date(isoStr);
+  var m = d.getMonth() + 1;
+  var day = d.getDate();
+  var h = String(d.getHours()).padStart(2, '0');
+  var min = String(d.getMinutes()).padStart(2, '0');
+  return m + '月' + day + '日 ' + h + ':' + min;
+}
+
+function formatTime(isoStr) {
+  if (!isoStr) return '--';
+  var d = new Date(isoStr);
+  return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+}
+
+function formatDuration(minutes) {
+  if (!minutes && minutes !== 0) return '--';
+  if (minutes < 1) return Math.round(minutes * 60) + '秒';
+  var h = Math.floor(minutes / 60);
+  var m = Math.floor(minutes % 60);
+  if (h > 0) return h + '时' + m + '分';
+  return m + '分钟';
+}
+
+function timeAgo(isoStr) {
+  if (!isoStr) return '';
+  var now = new Date();
+  var then = new Date(isoStr);
+  var mins = Math.floor((now - then) / 60000);
+  if (mins < 1) return '刚刚';
+  if (mins < 60) return mins + '分钟前';
+  var hours = Math.floor(mins / 60);
+  if (hours < 24) return hours + '小时前';
+  var days = Math.floor(hours / 24);
+  if (days < 30) return days + '天前';
+  return Math.floor(days / 30) + '个月前';
+}
+
+function getEmoji(type) {
+  var map = {
+    diaper: '&#x1F9F7;', feed: '&#x1F37C;', breastfeed: '&#x1F37C;', sunbath: '&#x2600;&#xFE0F;',
+    poop: '&#x1F4A9;', bath: '&#x1F6C1;', sleep: '&#x1F634;', wake: '&#x1F31E;',
+    medicine: '&#x1F48A;', tummy: '&#x1F476;', play: '&#x1F3A8;', nap: '&#x1F634;', walk: '&#x1F6B6;'
+  };
+  return map[type] || '&#x1F4DD;';
 }
 </script>
 </body>
