@@ -768,9 +768,10 @@ function renderHistory(instants, durations) {
   instants.forEach(function(r) {
     if (historyFilter !== 'all' && r.event_type !== historyFilter) return;
     all.push({ time: r.recorded_at, html:
-      '<div class="record-item"><div><div style="font-weight:600">' + getEmoji(r.event_type) + ' ' + r.event_label + '</div>' +
+      '<div class="record-item"><div class="record-main"><div><div style="font-weight:600">' + getEmoji(r.event_type) + ' ' + r.event_label + '</div>' +
       '<div class="record-time">' + formatDate(r.recorded_at) + ' ' + formatTime(r.recorded_at) + ' · ' + r.recorded_by + '</div>' +
-      '</div><span class="delete-btn" onclick="deleteInstant(' + r.id + ')">×</span></div>'
+      '</div><span class="delete-btn" onclick="deleteInstant(' + r.id + ')">×</span></div>' +
+      renderThumbs(r.images, 'instant', r.id) + '</div>'
     });
   });
   durations.forEach(function(r) {
@@ -779,10 +780,11 @@ function renderHistory(instants, durations) {
     var timeRange = formatTime(r.started_at) + (r.ended_at ? ' → ' + formatTime(r.ended_at) : '');
     var who = r.started_by + (r.ended_by ? ' → ' + r.ended_by : '');
     all.push({ time: r.started_at, html:
-      '<div class="record-item"><div><div style="font-weight:600">' + getEmoji(r.event_type) + ' ' + r.event_label + ' ' + status + '</div>' +
+      '<div class="record-item"><div class="record-main"><div><div style="font-weight:600">' + getEmoji(r.event_type) + ' ' + r.event_label + ' ' + status + '</div>' +
       '<div class="record-time">' + formatDate(r.started_at) + ' ' + timeRange + '</div>' +
       '<div class="record-time">' + who + '</div>' +
-      '</div><span class="delete-btn" onclick="deleteDuration(' + r.id + ')">×</span></div>'
+      '</div><span class="delete-btn" onclick="deleteDuration(' + r.id + ')">×</span></div>' +
+      renderThumbs(r.images, 'duration', r.id) + '</div>'
     });
   });
   all.sort(function(a, b) { return new Date(b.time) - new Date(a.time); });

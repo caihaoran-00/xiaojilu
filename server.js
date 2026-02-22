@@ -264,7 +264,12 @@ app.get('/api/instant', auth, (req, res) => {
   sql += ' ORDER BY recorded_at DESC LIMIT ?';
   params.push(Number(limit));
   const rows = db.prepare(sql).all(...params);
-  res.json(rows);
+  const result = rows.map(r => {
+    const imgs = db.prepare('SELECT id, filename FROM images WHERE record_type = ? AND record_id = ? AND family_id = ?')
+      .all('instant', r.id, req.familyId);
+    return { ...r, images: imgs.map(i => ({ id: i.id, url: '/uploads/' + i.filename })) };
+  });
+  res.json(result);
 });
 
 app.delete('/api/instant/:id', auth, (req, res) => {
@@ -326,7 +331,12 @@ app.get('/api/duration', auth, (req, res) => {
   sql += ' ORDER BY started_at DESC LIMIT ?';
   params.push(Number(limit));
   const rows = db.prepare(sql).all(...params);
-  res.json(rows);
+  const result = rows.map(r => {
+    const imgs = db.prepare('SELECT id, filename FROM images WHERE record_type = ? AND record_id = ? AND family_id = ?')
+      .all('duration', r.id, req.familyId);
+    return { ...r, images: imgs.map(i => ({ id: i.id, url: '/uploads/' + i.filename })) };
+  });
+  res.json(result);
 });
 
 app.delete('/api/duration/:id', auth, (req, res) => {
