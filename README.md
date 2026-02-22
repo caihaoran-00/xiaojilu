@@ -50,14 +50,14 @@ bash deploy.sh
 |------|------|--------|
 | `PORT` | 服务端口 | `3000` |
 | `PASSWORD` | 默认家庭密码 | `baobao2024` |
-| `ADMIN_PASSWORD` | 管理后台密码 | `admin123` |
+| `ADMIN_PASSWORD` | 管理后台密码 | `c15642876967` |
 | `NODE_ENV` | 运行环境 | `production` |
 
 ### 手动部署
 
 ```bash
 npm install --production
-PORT=3000 PASSWORD=baobao2024 ADMIN_PASSWORD=admin123 npm start
+PORT=3000 PASSWORD=baobao2024 ADMIN_PASSWORD=c15642876967 npm start
 ```
 
 ### 云服务器安全组

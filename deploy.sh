@@ -43,7 +43,7 @@ Restart=always
 RestartSec=5
 Environment=PORT=3000
 Environment=PASSWORD=baobao2024
-Environment=ADMIN_PASSWORD=admin123
+Environment=ADMIN_PASSWORD=c15642876967
 Environment=NODE_ENV=production
 
 [Install]
@@ -62,7 +62,7 @@ echo "========================================="
 echo ""
 echo "  访问地址: http://$(curl -s ifconfig.me 2>/dev/null || echo '你的IP'):3000"
 echo "  默认密码: baobao2024"
-echo "  管理员密码: admin123"
+echo "  管理员密码: c15642876967"
 echo ""
 echo "  常用命令:"
 echo "    查看状态: sudo systemctl status xiaojilu"

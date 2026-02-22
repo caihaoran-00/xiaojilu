@@ -7,7 +7,7 @@ const multer = require('multer');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'c15642876967';
 
 // ========== 目录初始化 ==========
 const dataDir = path.join(__dirname, 'data');
