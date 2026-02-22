@@ -31,18 +31,33 @@
 
 ## 🚀 部署
 
-### 快速部署（Ubuntu/Debian）
+### 方式一：从 GitHub 克隆（推荐）
 
 ```bash
+# 1. 克隆项目到服务器
 cd /var/www
-# 上传代码后运行
-bash deploy.sh
+sudo rm -rf xiaojilu  # 如果目录已存在且有旧文件
+sudo git clone https://github.com/caihaoran-00/xiaojilu.git
+cd xiaojilu
+
+# 2. 运行部署脚本
+sudo bash deploy.sh
 ```
 
 部署脚本会自动完成：
+- 安装 Node.js（如需要）
 - 安装依赖
 - 创建 systemd 服务（含环境变量配置）
 - 启动服务
+
+### 方式二：上传代码后部署
+
+如果你不想用 git 克隆，可以把整个项目文件夹上传到服务器，然后运行：
+
+```bash
+cd /var/www/xiaojilu
+bash deploy.sh
+```
 
 ### 环境变量
 
@@ -63,6 +78,33 @@ PORT=3000 PASSWORD=baobao2024 ADMIN_PASSWORD=c15642876967 npm start
 ### 云服务器安全组
 
 需要在云服务器控制台放行对应端口（默认 3000）。
+
+### 修改密码
+
+部署后修改密码：
+
+```bash
+sudo nano /etc/systemd/system/xiaojilu.service
+```
+
+找到对应的 `Environment=` 行，修改密码值：
+- `Environment=PASSWORD=你的新家庭密码`
+- `Environment=ADMIN_PASSWORD=你的新管理员密码`
+
+保存后执行：
+```bash
+sudo systemctl daemon-reload
+sudo systemctl restart xiaojilu
+```
+
+### 常用命令
+
+| 命令 | 说明 |
+|------|------|
+| `sudo systemctl status xiaojilu` | 查看服务状态 |
+| `sudo systemctl restart xiaojilu` | 重启服务 |
+| `sudo systemctl stop xiaojilu` | 停止服务 |
+| `sudo journalctl -u xiaojilu -f` | 查看实时日志 |
 
 ## 📱 手机添加到主屏幕
 
