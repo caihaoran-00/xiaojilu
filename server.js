@@ -88,6 +88,18 @@ db.exec(`
     filename TEXT NOT NULL,
     created_at TEXT DEFAULT (datetime('now', 'localtime'))
   );
+
+  -- 自定义事件
+  CREATE TABLE IF NOT EXISTS custom_events (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    family_id INTEGER NOT NULL,
+    category TEXT NOT NULL,
+    event_type TEXT NOT NULL,
+    event_label TEXT NOT NULL,
+    emoji TEXT DEFAULT '📝',
+    sort_order INTEGER DEFAULT 0,
+    created_at TEXT DEFAULT (datetime('now', 'localtime'))
+  );
 `);
 
 // ========== 数据库迁移 ==========
@@ -433,6 +445,38 @@ app.get('/api/images/:record_type/:record_id', auth, (req, res) => {
   const imgs = db.prepare('SELECT id, filename FROM images WHERE record_type = ? AND record_id = ? AND family_id = ?')
     .all(req.params.record_type, req.params.record_id, req.familyId);
   res.json(imgs.map(i => ({ id: i.id, url: `/uploads/${i.filename}` })));
+});
+
+// ========== 备注 API ==========
+app.patch('/api/instant/:id/note', auth, (req, res) => {
+  const { note } = req.body;
+  db.prepare('UPDATE instant_records SET note = ? WHERE id = ? AND family_id = ?').run(note || '', req.params.id, req.familyId);
+  res.json({ success: true });
+});
+
+app.patch('/api/duration/:id/note', auth, (req, res) => {
+  const { note } = req.body;
+  db.prepare('UPDATE duration_records SET note = ? WHERE id = ? AND family_id = ?').run(note || '', req.params.id, req.familyId);
+  res.json({ success: true });
+});
+
+// ========== 自定义事件 API ==========
+app.get('/api/custom-events', auth, (req, res) => {
+  const rows = db.prepare('SELECT * FROM custom_events WHERE family_id = ? ORDER BY category, sort_order, id').all(req.familyId);
+  res.json(rows);
+});
+
+app.post('/api/custom-events', auth, (req, res) => {
+  const { category, event_type, event_label, emoji } = req.body;
+  if (!category || !event_type || !event_label) return res.status(400).json({ error: '缺少必填字段' });
+  const stmt = db.prepare('INSERT INTO custom_events (family_id, category, event_type, event_label, emoji) VALUES (?, ?, ?, ?, ?)');
+  const result = stmt.run(req.familyId, category, event_type, event_label, emoji || '📝');
+  res.json({ success: true, id: result.lastInsertRowid });
+});
+
+app.delete('/api/custom-events/:id', auth, (req, res) => {
+  db.prepare('DELETE FROM custom_events WHERE id = ? AND family_id = ?').run(req.params.id, req.familyId);
+  res.json({ success: true });
 });
 
 // ========== SPA fallback ==========

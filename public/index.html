@@ -48,6 +48,19 @@
     .img-upload-btn:active { background: #f0f0f0; }
     .img-thumb-wrap { position: relative; display: inline-block; }
     .img-thumb-del { position: absolute; top: -4px; right: -4px; width: 18px; height: 18px; border-radius: 50%; background: #f44336; color: white; font-size: 11px; display: flex; align-items: center; justify-content: center; cursor: pointer; line-height: 1; border: 1px solid white; }
+    .event-button-group { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+    .event-btn-wrap { position: relative; display: inline-flex; }
+    .event-btn-del { position: absolute; top: -6px; right: -6px; width: 18px; height: 18px; border-radius: 50%; background: #f44336; color: white; font-size: 11px; display: none; align-items: center; justify-content: center; cursor: pointer; line-height: 1; border: 1px solid white; }
+    .event-button-group.manage-on .event-btn-del { display: flex; }
+    .manage-toggle { font-size: 12px; color: #999; padding: 2px 8px; border-radius: 8px; border: 1px solid #eee; background: #fafafa; cursor: pointer; }
+    .manage-toggle.active { color: #E91E63; border-color: #E91E63; background: #FFF0F5; }
+    .record-note { font-size: 13px; color: #888; font-style: italic; margin-top: 4px; }
+    .record-note-add { font-size: 13px; color: #999; margin-top: 4px; cursor: pointer; }
+    .note-editor { margin-top: 6px; }
+    .note-input { padding: 8px 10px; border-radius: 10px; border: 2px solid #eee; font-size: 14px; width: 100%; }
+    .note-actions { display: flex; gap: 8px; margin-top: 6px; }
+    .note-suggestion { display: inline-flex; align-items: center; padding: 4px 8px; border-radius: 12px; font-size: 12px; color: #E91E63; background: #FFF0F5; border: 1px solid #F8BBD0; cursor: pointer; margin-bottom: 6px; }
+    .note-suggestion-wrap { margin-bottom: 4px; }
     .active-event { background: linear-gradient(135deg, #FFF0F5, #FFE0EC); border: 2px solid #E91E63; animation: pulse-border 2s infinite; }
     @keyframes pulse-border { 0%, 100% { border-color: #E91E63; } 50% { border-color: #F48FB1; } }
     .timer { font-size: 28px; font-weight: 700; color: #E91E63; font-variant-numeric: tabular-nums; }
@@ -148,12 +161,11 @@
       </div>
     </div>
     <div class="card" style="text-align: center;">
-      <div style="font-size: 14px; color: #999; margin-bottom: 12px;">快速记录</div>
-      <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
-        <button class="btn btn-primary btn-lg" onclick="quickInstant('diaper', '换尿裤')">&#x1F9F7; 换尿裤</button>
-        <button class="btn btn-success btn-lg" onclick="quickInstant('feed', '喂奶')">&#x1F37C; 喂奶</button>
-        <button class="btn btn-outline btn-lg" onclick="showInstantModal()">&#x2795; 其他</button>
+      <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:12px;">
+        <div style="font-size: 14px; color: #999;">快速记录</div>
+        <span class="manage-toggle" id="instantManageToggle" onclick="toggleManageMode('instant')">管理</span>
       </div>
+      <div class="event-button-group" id="instantQuickButtons"></div>
     </div>
     <div class="card" id="lastInstantCard" style="display: none;">
       <div style="font-size: 14px; color: #999;">上次换尿裤</div>
@@ -188,12 +200,11 @@
       <div id="activeEventsList"></div>
     </div>
     <div class="card" style="text-align: center;">
-      <div style="font-size: 14px; color: #999; margin-bottom: 12px;">开始新活动</div>
-      <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
-        <button class="btn btn-primary btn-lg" onclick="startDuration('sunbath', '晒太阳')">&#x2600;&#xFE0F; 晒太阳</button>
-        <button class="btn btn-success btn-lg" onclick="startDuration('breastfeed', '吃奶')">&#x1F37C; 吃奶</button>
-        <button class="btn btn-outline btn-lg" onclick="showDurationModal()">&#x2795; 其他</button>
+      <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:12px;">
+        <div style="font-size: 14px; color: #999;">开始新活动</div>
+        <span class="manage-toggle" id="durationManageToggle" onclick="toggleManageMode('duration')">管理</span>
       </div>
+      <div class="event-button-group" id="durationQuickButtons"></div>
     </div>
     <div id="durationRecords">
       <div class="empty-state"><div class="empty-icon">&#x1F4CB;</div><div class="empty-text">暂无记录</div></div>
@@ -203,13 +214,7 @@
   <!-- 历史页 -->
   <div class="page" id="historyPage">
     <div class="header">&#x1F4C5; 历史记录</div>
-    <div style="display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;">
-      <button class="tag selected" onclick="filterHistory('all', this)">全部</button>
-      <button class="tag" onclick="filterHistory('diaper', this)">换尿裤</button>
-      <button class="tag" onclick="filterHistory('sunbath', this)">晒太阳</button>
-      <button class="tag" onclick="filterHistory('feed', this)">喂奶</button>
-      <button class="tag" onclick="filterHistory('breastfeed', this)">吃奶</button>
-    </div>
+    <div id="historyFilters" style="display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;"></div>
     <div id="historyList"></div>
   </div>
 
@@ -232,15 +237,7 @@
 <div class="modal-overlay" id="instantModal">
   <div class="modal">
     <div class="modal-title">选择事件类型</div>
-    <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
-      <button class="btn btn-primary" onclick="quickInstant('diaper', '换尿裤'); closeModal('instantModal')">&#x1F9F7; 换尿裤</button>
-      <button class="btn btn-success" onclick="quickInstant('feed', '喂奶'); closeModal('instantModal')">&#x1F37C; 喂奶</button>
-      <button class="btn btn-outline" onclick="quickInstant('poop', '拉便便'); closeModal('instantModal')">&#x1F4A9; 拉便便</button>
-      <button class="btn btn-outline" onclick="quickInstant('bath', '洗澡'); closeModal('instantModal')">&#x1F6C1; 洗澡</button>
-      <button class="btn btn-outline" onclick="quickInstant('sleep', '入睡'); closeModal('instantModal')">&#x1F634; 入睡</button>
-      <button class="btn btn-outline" onclick="quickInstant('wake', '醒来'); closeModal('instantModal')">&#x1F31E; 醒来</button>
-      <button class="btn btn-outline" onclick="quickInstant('medicine', '吃药'); closeModal('instantModal')">&#x1F48A; 吃药</button>
-    </div>
+    <div class="event-button-group" id="instantModalButtons"></div>
     <button class="btn btn-block" style="margin-top: 16px; background: #f5f5f5; color: #999;" onclick="closeModal('instantModal')">取消</button>
   </div>
 </div>
@@ -249,14 +246,7 @@
 <div class="modal-overlay" id="durationModal">
   <div class="modal">
     <div class="modal-title">选择活动类型</div>
-    <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
-      <button class="btn btn-primary" onclick="startDuration('sunbath', '晒太阳'); closeModal('durationModal')">&#x2600;&#xFE0F; 晒太阳</button>
-      <button class="btn btn-success" onclick="startDuration('breastfeed', '吃奶'); closeModal('durationModal')">&#x1F37C; 吃奶</button>
-      <button class="btn btn-outline" onclick="startDuration('tummy', '趴趴时间'); closeModal('durationModal')">&#x1F476; 趴趴时间</button>
-      <button class="btn btn-outline" onclick="startDuration('play', '玩耍'); closeModal('durationModal')">&#x1F3A8; 玩耍</button>
-      <button class="btn btn-outline" onclick="startDuration('nap', '小睡'); closeModal('durationModal')">&#x1F634; 小睡</button>
-      <button class="btn btn-outline" onclick="startDuration('walk', '户外散步'); closeModal('durationModal')">&#x1F6B6; 户外散步</button>
-    </div>
+    <div class="event-button-group" id="durationModalButtons"></div>
     <button class="btn btn-block" style="margin-top: 16px; background: #f5f5f5; color: #999;" onclick="closeModal('durationModal')">取消</button>
   </div>
 </div>
@@ -267,6 +257,22 @@
     <div class="modal-title">修改活动类型</div>
     <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;" id="editEventOptions"></div>
     <button class="btn btn-block" style="margin-top: 16px; background: #f5f5f5; color: #999;" onclick="closeModal('editModal')">取消</button>
+  </div>
+</div>
+
+<!-- 添加自定义事件弹窗 -->
+<div class="modal-overlay" id="addEventModal">
+  <div class="modal">
+    <div class="modal-title">添加自定义事件</div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <input class="input" id="addEventName" type="text" placeholder="事件名称（如：吐奶）">
+      <input class="input" id="addEventEmoji" type="text" placeholder="表情（如：📝）">
+      <input type="hidden" id="addEventCategory" value="">
+    </div>
+    <div style="display:flex;gap:10px;margin-top:16px;">
+      <button class="btn btn-primary btn-block" onclick="submitAddEvent()">确定</button>
+      <button class="btn btn-block" style="background:#f5f5f5;color:#999;" onclick="closeModal('addEventModal')">取消</button>
+    </div>
   </div>
 </div>
 
@@ -282,6 +288,33 @@ var pendingUpload = { type: '', id: 0 };
 var previewingImgId = 0;
 var editingId = null;
 var historyFilter = 'all';
+var customEvents = [];
+var manageMode = { instant: false, duration: false };
+var builtInInstantQuickEvents = [
+  { event_type: 'diaper', event_label: '换尿裤', emoji: '🧷', style: 'btn-primary' },
+  { event_type: 'feed', event_label: '喂奶', emoji: '🍼', style: 'btn-success' }
+];
+var builtInInstantAllEvents = [
+  { event_type: 'diaper', event_label: '换尿裤', emoji: '🧷', style: 'btn-primary' },
+  { event_type: 'feed', event_label: '喂奶', emoji: '🍼', style: 'btn-success' },
+  { event_type: 'poop', event_label: '拉便便', emoji: '💩', style: 'btn-outline' },
+  { event_type: 'bath', event_label: '洗澡', emoji: '🛁', style: 'btn-outline' },
+  { event_type: 'sleep', event_label: '入睡', emoji: '😴', style: 'btn-outline' },
+  { event_type: 'wake', event_label: '醒来', emoji: '🌞', style: 'btn-outline' },
+  { event_type: 'medicine', event_label: '吃药', emoji: '💊', style: 'btn-outline' }
+];
+var builtInDurationQuickEvents = [
+  { event_type: 'sunbath', event_label: '晒太阳', emoji: '☀️', style: 'btn-primary' },
+  { event_type: 'breastfeed', event_label: '吃奶', emoji: '🍼', style: 'btn-success' }
+];
+var builtInDurationAllEvents = [
+  { event_type: 'sunbath', event_label: '晒太阳', emoji: '☀️', style: 'btn-primary' },
+  { event_type: 'breastfeed', event_label: '吃奶', emoji: '🍼', style: 'btn-success' },
+  { event_type: 'tummy', event_label: '趴趴时间', emoji: '👶', style: 'btn-outline' },
+  { event_type: 'play', event_label: '玩耍', emoji: '🎨', style: 'btn-outline' },
+  { event_type: 'nap', event_label: '小睡', emoji: '😴', style: 'btn-outline' },
+  { event_type: 'walk', event_label: '户外散步', emoji: '🚶', style: 'btn-outline' }
+];
 
 // ===== API 封装 =====
 function api(method, path, body) {
@@ -333,7 +366,9 @@ function enterApp() {
   document.getElementById('mainApp').style.display = 'block';
   document.getElementById('bottomNav').style.display = 'flex';
   updateHeaders();
-  loadData();
+  loadCustomEvents().then(function() {
+    loadData();
+  });
   refreshInterval = setInterval(loadData, 15000);
 }
 
@@ -407,6 +442,111 @@ function loadData() {
     updateLastDiaper(data.instants);
   }).catch(function(err) {
     console.error('加载数据失败:', err);
+  });
+}
+
+function loadCustomEvents() {
+  return api('GET', '/api/custom-events').then(function(list) {
+    customEvents = list || [];
+    renderAllEventButtons();
+  }).catch(function() {
+    customEvents = [];
+    renderAllEventButtons();
+  });
+}
+
+function renderAllEventButtons() {
+  renderEventButtons('instant', 'instantQuickButtons', false, true);
+  renderEventButtons('duration', 'durationQuickButtons', false, true);
+  renderEventButtons('instant', 'instantModalButtons', true, false);
+  renderEventButtons('duration', 'durationModalButtons', true, false);
+}
+
+function renderEventButtons(category, containerId, inModal, includeAdd) {
+  var el = document.getElementById(containerId);
+  if (!el) return;
+  var builtIn = category === 'instant' ? (inModal ? builtInInstantAllEvents : builtInInstantQuickEvents)
+    : (inModal ? builtInDurationAllEvents : builtInDurationQuickEvents);
+  var customs = customEvents.filter(function(e) { return e.category === category; });
+  var html = '';
+  builtIn.forEach(function(e) {
+    var labelEsc = escapeJsString(e.event_label);
+    var onclick = category === 'instant'
+      ? "quickInstant('" + e.event_type + "', '" + labelEsc + "')"
+      : "startDuration('" + e.event_type + "', '" + labelEsc + "')";
+    if (inModal) onclick += "; closeModal('" + (category === 'instant' ? 'instantModal' : 'durationModal') + "')";
+    html += '<div class="event-btn-wrap">' +
+      '<button class="btn ' + e.style + (inModal ? '' : ' btn-lg') + '" onclick="' + onclick + '">' + e.emoji + ' ' + escapeHtml(e.event_label) + '</button>' +
+      '</div>';
+  });
+  customs.forEach(function(e) {
+    var labelEsc = escapeJsString(e.event_label || '');
+    var emoji = e.emoji || '📝';
+    var onclick = category === 'instant'
+      ? "quickInstant('" + e.event_type + "', '" + labelEsc + "')"
+      : "startDuration('" + e.event_type + "', '" + labelEsc + "')";
+    if (inModal) onclick += "; closeModal('" + (category === 'instant' ? 'instantModal' : 'durationModal') + "')";
+    html += '<div class="event-btn-wrap">' +
+      '<button class="btn btn-outline' + (inModal ? '' : ' btn-lg') + '" onclick="' + onclick + '">' + escapeHtml(emoji) + ' ' + escapeHtml(e.event_label || '') + '</button>' +
+      '<span class="event-btn-del" onclick="event.stopPropagation(); deleteCustomEvent(' + e.id + ')">×</span>' +
+      '</div>';
+  });
+  if (includeAdd) {
+    html += '<div class="event-btn-wrap">' +
+      '<button class="btn btn-outline' + (inModal ? '' : ' btn-lg') + '" onclick="showAddEventModal(\'' + category + '\')">➕ 自定义</button>' +
+      '</div>';
+  }
+  el.innerHTML = html;
+  if (manageMode[category]) el.classList.add('manage-on');
+  else el.classList.remove('manage-on');
+}
+
+function toggleManageMode(category) {
+  manageMode[category] = !manageMode[category];
+  var toggleId = category === 'instant' ? 'instantManageToggle' : 'durationManageToggle';
+  var toggleEl = document.getElementById(toggleId);
+  if (toggleEl) {
+    if (manageMode[category]) {
+      toggleEl.classList.add('active');
+      toggleEl.textContent = '完成';
+    } else {
+      toggleEl.classList.remove('active');
+      toggleEl.textContent = '管理';
+    }
+  }
+  renderAllEventButtons();
+}
+
+function showAddEventModal(category) {
+  document.getElementById('addEventCategory').value = category;
+  document.getElementById('addEventName').value = '';
+  document.getElementById('addEventEmoji').value = '📝';
+  document.getElementById('addEventModal').classList.add('show');
+}
+
+function submitAddEvent() {
+  var category = document.getElementById('addEventCategory').value;
+  var name = document.getElementById('addEventName').value.trim();
+  var emoji = document.getElementById('addEventEmoji').value.trim() || '📝';
+  if (!name) { showToast('请输入事件名称'); return; }
+  var type = 'custom_' + Date.now();
+  api('POST', '/api/custom-events', {
+    category: category,
+    event_type: type,
+    event_label: name,
+    emoji: emoji
+  }).then(function() {
+    closeModal('addEventModal');
+    showToast('已添加 ✓');
+    return loadCustomEvents();
+  });
+}
+
+function deleteCustomEvent(id) {
+  if (!confirm('确定删除这个自定义事件？')) return;
+  api('DELETE', '/api/custom-events/' + id).then(function() {
+    showToast('已删除');
+    loadCustomEvents();
   });
 }
 
@@ -572,6 +712,7 @@ function renderInstantList(records) {
       html += '<span class="delete-btn" onclick="deleteInstant(' + r.id + ')">×</span>';
       html += '</div>';
       html += '</div>';
+      html += renderNoteSection('instant', r);
       html += renderThumbs(r.images, 'instant', r.id);
       html += '</div>';
     });
@@ -642,6 +783,7 @@ function renderDurationList(allRecords, activeRecords) {
         '<button class="btn btn-danger btn-block" onclick="endDuration(' + r.id + ')">⏹ 结束</button>' +
         '<button class="btn btn-outline" onclick="showEditModal(' + r.id + ')" style="flex-shrink:0">✏️</button>' +
         '</div>' +
+        renderNoteSection('duration', r) +
         renderThumbs(r.images || [], 'duration', r.id) +
         '</div>';
     }).join('');
@@ -676,6 +818,7 @@ function renderDurationList(allRecords, activeRecords) {
       html += '<span class="delete-btn" onclick="deleteDuration(' + r.id + ')">×</span>';
       html += '</div>';
       html += '</div>';
+      html += renderNoteSection('duration', r);
       html += renderThumbs(r.images, 'duration', r.id);
       html += '</div>';
     });
@@ -725,12 +868,14 @@ function deleteDuration(id) {
 // ===== 修改事件类型 =====
 function showEditModal(id) {
   editingId = id;
-  var types = [
-    ['sunbath', '☀️ 晒太阳'], ['breastfeed', '🍼 吃奶'], ['tummy', '👶 趴趴时间'],
-    ['play', '🎨 玩耍'], ['nap', '😴 小睡'], ['walk', '🚶 户外散步']
-  ];
+  var types = builtInDurationAllEvents.map(function(t) {
+    return { event_type: t.event_type, event_label: t.event_label, emoji: t.emoji };
+  });
+  customEvents.filter(function(e) { return e.category === 'duration'; }).forEach(function(e) {
+    types.push({ event_type: e.event_type, event_label: e.event_label, emoji: e.emoji || '📝' });
+  });
   document.getElementById('editEventOptions').innerHTML = types.map(function(t) {
-    return '<button class="btn btn-outline" onclick="editDuration(\'' + t[0] + '\', \'' + t[1].slice(2) + '\')">' + t[1] + '</button>';
+    return '<button class="btn btn-outline" onclick="editDuration(\'' + t.event_type + '\', \'' + escapeJsString(t.event_label || '') + '\')">' + escapeHtml(t.emoji || '📝') + ' ' + escapeHtml(t.event_label || '') + '</button>';
   }).join('');
   document.getElementById('editModal').classList.add('show');
 }
@@ -749,6 +894,7 @@ function loadHistory() {
     api('GET', '/api/instant?limit=100'),
     api('GET', '/api/duration?limit=100')
   ]).then(function(results) {
+    renderHistoryFilters(results[0], results[1]);
     renderHistory(results[0], results[1]);
   }).catch(function(e) {
     console.error('加载历史失败:', e);
@@ -771,6 +917,7 @@ function renderHistory(instants, durations) {
       '<div class="record-item"><div class="record-main"><div><div style="font-weight:600">' + getEmoji(r.event_type) + ' ' + r.event_label + '</div>' +
       '<div class="record-time">' + formatDate(r.recorded_at) + ' ' + formatTime(r.recorded_at) + ' · ' + r.recorded_by + '</div>' +
       '</div><span class="delete-btn" onclick="deleteInstant(' + r.id + ')">×</span></div>' +
+      renderNoteSection('instant', r) +
       renderThumbs(r.images, 'instant', r.id) + '</div>'
     });
   });
@@ -784,6 +931,7 @@ function renderHistory(instants, durations) {
       '<div class="record-time">' + formatDate(r.started_at) + ' ' + timeRange + '</div>' +
       '<div class="record-time">' + who + '</div>' +
       '</div><span class="delete-btn" onclick="deleteDuration(' + r.id + ')">×</span></div>' +
+      renderNoteSection('duration', r) +
       renderThumbs(r.images, 'duration', r.id) + '</div>'
     });
   });
@@ -831,6 +979,25 @@ function toLocalISO(date) {
   return local.toISOString().slice(0, -1);
 }
 
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function escapeJsString(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/\\/g, '\\\\')
+    .replace(/'/g, "\\'")
+    .replace(/\r/g, '')
+    .replace(/\n/g, '\\n');
+}
+
 function formatTime(isoStr) {
   var d = new Date(isoStr);
   return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
@@ -871,7 +1038,98 @@ function getEmoji(type) {
     poop: '💩', bath: '🛁', sleep: '😴', wake: '🌞',
     medicine: '💊', tummy: '👶', play: '🎨', nap: '😴', walk: '🚶'
   };
+  for (var i = 0; i < customEvents.length; i++) {
+    if (customEvents[i].event_type === type) return customEvents[i].emoji || '📝';
+  }
   return map[type] || '📝';
+}
+
+function renderNoteSection(recordType, record) {
+  var note = record.note || '';
+  var safeNote = escapeHtml(note);
+  var noteEsc = escapeJsString(note);
+  var eventTypeEsc = escapeJsString(record.event_type || '');
+  var areaId = 'note-area-' + recordType + '-' + record.id;
+  if (note) {
+    return '<div class="record-note" id="' + areaId + '" onclick="openNoteEditor(\'' + recordType + '\',' + record.id + ',\'' + eventTypeEsc + '\',\'' + noteEsc + '\')">📝 ' + safeNote + '</div>';
+  }
+  return '<div class="record-note-add" id="' + areaId + '" onclick="openNoteEditor(\'' + recordType + '\',' + record.id + ',\'' + eventTypeEsc + '\',\'\')">添加备注</div>';
+}
+
+function openNoteEditor(recordType, id, eventType, currentNote) {
+  var areaId = 'note-area-' + recordType + '-' + id;
+  var area = document.getElementById(areaId);
+  if (!area) return;
+  var suggestion = localStorage.getItem('xjl_notes_' + eventType) || '';
+  var html = '<div class="note-editor">';
+  if (suggestion && suggestion !== currentNote) {
+    html += '<div class="note-suggestion-wrap">' +
+      '<span class="note-suggestion" onclick="useNoteSuggestion(\'' + recordType + '\',' + id + ',\'' + escapeJsString(suggestion) + '\')">📝 ' + escapeHtml(suggestion) + '</span>' +
+      '</div>';
+  }
+  html += '<input class="note-input" id="note-input-' + recordType + '-' + id + '" type="text" value="' + escapeHtml(currentNote || '') + '">';
+  html += '<div class="note-actions">' +
+    '<button class="btn btn-sm btn-primary" onclick="saveNote(\'' + recordType + '\',' + id + ',\'' + escapeJsString(eventType) + '\')">保存</button>' +
+    '<button class="btn btn-sm" style="background:#f5f5f5;color:#999;" onclick="cancelNoteEdit(\'' + recordType + '\',' + id + ',\'' + escapeJsString(eventType) + '\',\'' + escapeJsString(currentNote || '') + '\')">取消</button>' +
+    '</div>';
+  html += '</div>';
+  area.innerHTML = html;
+  var input = document.getElementById('note-input-' + recordType + '-' + id);
+  if (input) input.focus();
+}
+
+function useNoteSuggestion(recordType, id, suggestion) {
+  var input = document.getElementById('note-input-' + recordType + '-' + id);
+  if (input) input.value = suggestion;
+}
+
+function cancelNoteEdit(recordType, id, eventType, currentNote) {
+  var areaId = 'note-area-' + recordType + '-' + id;
+  var area = document.getElementById(areaId);
+  if (!area) return;
+  if (currentNote) {
+    area.outerHTML = '<div class="record-note" id="' + areaId + '" onclick="openNoteEditor(\'' + recordType + '\',' + id + ',\'' + escapeJsString(eventType) + '\',\'' + escapeJsString(currentNote) + '\')">📝 ' + escapeHtml(currentNote) + '</div>';
+  } else {
+    area.outerHTML = '<div class="record-note-add" id="' + areaId + '" onclick="openNoteEditor(\'' + recordType + '\',' + id + ',\'' + escapeJsString(eventType) + '\',\'\')">添加备注</div>';
+  }
+}
+
+function saveNote(recordType, id, eventType) {
+  var input = document.getElementById('note-input-' + recordType + '-' + id);
+  if (!input) return;
+  var note = input.value.trim();
+  var path = recordType === 'instant' ? '/api/instant/' + id + '/note' : '/api/duration/' + id + '/note';
+  api('PATCH', path, { note: note }).then(function() {
+    if (note) localStorage.setItem('xjl_notes_' + eventType, note);
+    showToast('备注已保存');
+    loadData();
+    if (document.getElementById('historyPage').classList.contains('active')) loadHistory();
+  });
+}
+
+function renderHistoryFilters(instants, durations) {
+  var types = {};
+  instants.forEach(function(r) { types[r.event_type] = true; });
+  durations.forEach(function(r) { types[r.event_type] = true; });
+  var list = Object.keys(types);
+  list.sort();
+  if (historyFilter !== 'all' && !types[historyFilter]) historyFilter = 'all';
+  var html = '<button class="tag' + (historyFilter === 'all' ? ' selected' : '') + '" onclick="filterHistory(\'all\', this)">全部</button>';
+  list.forEach(function(t) {
+    html += '<button class="tag' + (historyFilter === t ? ' selected' : '') + '" onclick="filterHistory(\'' + escapeJsString(t) + '\', this)">' + getEmoji(t) + ' ' + escapeHtml(getEventLabel(t)) + '</button>';
+  });
+  document.getElementById('historyFilters').innerHTML = html;
+}
+
+function getEventLabel(type) {
+  var all = builtInInstantAllEvents.concat(builtInDurationAllEvents);
+  for (var i = 0; i < all.length; i++) {
+    if (all[i].event_type === type) return all[i].event_label;
+  }
+  for (var j = 0; j < customEvents.length; j++) {
+    if (customEvents[j].event_type === type) return customEvents[j].event_label || type;
+  }
+  return type;
 }
 
 // ===== Service Worker =====
