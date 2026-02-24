@@ -25,6 +25,16 @@
 - 客户端自动压缩（最大 1200px，JPEG 质量 0.7）
 - 支持图片预览和删除
 
+### ✏️ 自定义事件
+- 用户可自行添加新的事件类型（时间点和持续都支持）
+- 支持删除自定义事件（管理/完成切换模式）
+- 自定义事件与内置事件一起显示在主页
+
+### 📝 备注功能
+- 每条记录均可添加备注
+- 历史备注可复用（同一事件类型的备注会被记住）
+- 点击建议项即可快速填入并保存
+
 ### 📱 PWA 支持
 - 添加到手机主屏幕，像原生 App 一样使用
 - iPhone 和 Android 都支持
@@ -165,13 +175,18 @@ xiaojilu/
 | POST | `/api/instant` | 创建时间点记录 |
 | GET | `/api/instant` | 查询时间点记录 |
 | DELETE | `/api/instant/:id` | 删除时间点记录 |
+| PATCH | `/api/instant/:id/note` | 更新时间点记录的备注 |
 | POST | `/api/duration/start` | 开始持续事件 |
 | POST | `/api/duration/end/:id` | 结束持续事件 |
 | PUT | `/api/duration/:id` | 修改事件类型 |
 | GET | `/api/duration` | 查询持续记录 |
 | DELETE | `/api/duration/:id` | 删除持续记录 |
+| PATCH | `/api/duration/:id/note` | 更新持续记录的备注 |
 | GET | `/api/active` | 获取进行中事件 |
 | GET | `/api/recent?days=10` | 获取最近 N 天记录 |
+| GET | `/api/custom-events` | 获取自定义事件列表 |
+| POST | `/api/custom-events` | 创建自定义事件 |
+| DELETE | `/api/custom-events/:id` | 删除自定义事件 |
 | POST | `/api/upload` | 上传图片 |
 | DELETE | `/api/images/:id` | 删除图片 |
 
