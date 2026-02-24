@@ -52,10 +52,11 @@
     .event-btn-wrap { position: relative; display: inline-flex; }
     .event-btn-del { position: absolute; top: -6px; right: -6px; width: 18px; height: 18px; border-radius: 50%; background: #f44336; color: white; font-size: 11px; display: none; align-items: center; justify-content: center; cursor: pointer; line-height: 1; border: 1px solid white; }
     .event-button-group.manage-on .event-btn-del { display: flex; }
+    .event-button-group.manage-on { background: #FFF0F0; border-radius: 12px; padding: 10px; }
     .manage-toggle { font-size: 12px; color: #999; padding: 2px 8px; border-radius: 8px; border: 1px solid #eee; background: #fafafa; cursor: pointer; }
     .manage-toggle.active { color: #E91E63; border-color: #E91E63; background: #FFF0F5; }
     .record-note { font-size: 13px; color: #888; font-style: italic; margin-top: 4px; }
-    .record-note-add { font-size: 13px; color: #999; margin-top: 4px; cursor: pointer; }
+    .record-note-add { font-size: 13px; color: #E91E63; margin-top: 4px; cursor: pointer; opacity: 0.7; }
     .note-editor { margin-top: 6px; }
     .note-input { padding: 8px 10px; border-radius: 10px; border: 2px solid #eee; font-size: 14px; width: 100%; }
     .note-actions { display: flex; gap: 8px; margin-top: 6px; }
@@ -290,10 +291,6 @@ var editingId = null;
 var historyFilter = 'all';
 var customEvents = [];
 var manageMode = { instant: false, duration: false };
-var builtInInstantQuickEvents = [
-  { event_type: 'diaper', event_label: '换尿裤', emoji: '🧷', style: 'btn-primary' },
-  { event_type: 'feed', event_label: '喂奶', emoji: '🍼', style: 'btn-success' }
-];
 var builtInInstantAllEvents = [
   { event_type: 'diaper', event_label: '换尿裤', emoji: '🧷', style: 'btn-primary' },
   { event_type: 'feed', event_label: '喂奶', emoji: '🍼', style: 'btn-success' },
@@ -302,10 +299,6 @@ var builtInInstantAllEvents = [
   { event_type: 'sleep', event_label: '入睡', emoji: '😴', style: 'btn-outline' },
   { event_type: 'wake', event_label: '醒来', emoji: '🌞', style: 'btn-outline' },
   { event_type: 'medicine', event_label: '吃药', emoji: '💊', style: 'btn-outline' }
-];
-var builtInDurationQuickEvents = [
-  { event_type: 'sunbath', event_label: '晒太阳', emoji: '☀️', style: 'btn-primary' },
-  { event_type: 'breastfeed', event_label: '吃奶', emoji: '🍼', style: 'btn-success' }
 ];
 var builtInDurationAllEvents = [
   { event_type: 'sunbath', event_label: '晒太阳', emoji: '☀️', style: 'btn-primary' },
@@ -465,8 +458,7 @@ function renderAllEventButtons() {
 function renderEventButtons(category, containerId, inModal, includeAdd) {
   var el = document.getElementById(containerId);
   if (!el) return;
-  var builtIn = category === 'instant' ? (inModal ? builtInInstantAllEvents : builtInInstantQuickEvents)
-    : (inModal ? builtInDurationAllEvents : builtInDurationQuickEvents);
+  var builtIn = category === 'instant' ? builtInInstantAllEvents : builtInDurationAllEvents;
   var customs = customEvents.filter(function(e) { return e.category === category; });
   var html = '';
   builtIn.forEach(function(e) {
@@ -507,6 +499,12 @@ function toggleManageMode(category) {
   var toggleEl = document.getElementById(toggleId);
   if (toggleEl) {
     if (manageMode[category]) {
+      var customs = customEvents.filter(function(e) { return e.category === category; });
+      if (customs.length === 0) {
+        showToast('暂无自定义事件可管理，先添加自定义事件吧');
+        manageMode[category] = false;
+        return;
+      }
       toggleEl.classList.add('active');
       toggleEl.textContent = '完成';
     } else {
@@ -1053,7 +1051,7 @@ function renderNoteSection(recordType, record) {
   if (note) {
     return '<div class="record-note" id="' + areaId + '" onclick="openNoteEditor(\'' + recordType + '\',' + record.id + ',\'' + eventTypeEsc + '\',\'' + noteEsc + '\')">📝 ' + safeNote + '</div>';
   }
-  return '<div class="record-note-add" id="' + areaId + '" onclick="openNoteEditor(\'' + recordType + '\',' + record.id + ',\'' + eventTypeEsc + '\',\'\')">添加备注</div>';
+  return '<div class="record-note-add" id="' + areaId + '" onclick="openNoteEditor(\'' + recordType + '\',' + record.id + ',\'' + eventTypeEsc + '\',\'\')">📝 添加备注</div>';
 }
 
 function openNoteEditor(recordType, id, eventType, currentNote) {
@@ -1064,7 +1062,7 @@ function openNoteEditor(recordType, id, eventType, currentNote) {
   var html = '<div class="note-editor">';
   if (suggestion && suggestion !== currentNote) {
     html += '<div class="note-suggestion-wrap">' +
-      '<span class="note-suggestion" onclick="useNoteSuggestion(\'' + recordType + '\',' + id + ',\'' + escapeJsString(suggestion) + '\')">📝 ' + escapeHtml(suggestion) + '</span>' +
+      '<span class="note-suggestion" onclick="useNoteSuggestion(\'' + recordType + '\',' + id + ',\'' + escapeJsString(eventType) + '\',\'' + escapeJsString(suggestion) + '\')">📝 ' + escapeHtml(suggestion) + '</span>' +
       '</div>';
   }
   html += '<input class="note-input" id="note-input-' + recordType + '-' + id + '" type="text" value="' + escapeHtml(currentNote || '') + '">';
@@ -1078,9 +1076,12 @@ function openNoteEditor(recordType, id, eventType, currentNote) {
   if (input) input.focus();
 }
 
-function useNoteSuggestion(recordType, id, suggestion) {
+function useNoteSuggestion(recordType, id, eventType, suggestion) {
   var input = document.getElementById('note-input-' + recordType + '-' + id);
-  if (input) input.value = suggestion;
+  if (input) {
+    input.value = suggestion;
+    saveNote(recordType, id, eventType);
+  }
 }
 
 function cancelNoteEdit(recordType, id, eventType, currentNote) {
@@ -1090,7 +1091,7 @@ function cancelNoteEdit(recordType, id, eventType, currentNote) {
   if (currentNote) {
     area.outerHTML = '<div class="record-note" id="' + areaId + '" onclick="openNoteEditor(\'' + recordType + '\',' + id + ',\'' + escapeJsString(eventType) + '\',\'' + escapeJsString(currentNote) + '\')">📝 ' + escapeHtml(currentNote) + '</div>';
   } else {
-    area.outerHTML = '<div class="record-note-add" id="' + areaId + '" onclick="openNoteEditor(\'' + recordType + '\',' + id + ',\'' + escapeJsString(eventType) + '\',\'\')">添加备注</div>';
+    area.outerHTML = '<div class="record-note-add" id="' + areaId + '" onclick="openNoteEditor(\'' + recordType + '\',' + id + ',\'' + escapeJsString(eventType) + '\',\'\')">📝 添加备注</div>';
   }
 }
 
