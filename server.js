@@ -447,6 +447,43 @@ app.get('/api/images/:record_type/:record_id', auth, (req, res) => {
   res.json(imgs.map(i => ({ id: i.id, url: `/uploads/${i.filename}` })));
 });
 
+// ========== 时间修改 API ==========
+app.patch('/api/instant/:id/time', auth, (req, res) => {
+  const { recorded_at } = req.body;
+  if (!recorded_at) return res.status(400).json({ error: '缺少 recorded_at' });
+  const d = new Date(recorded_at);
+  if (isNaN(d.getTime())) return res.status(400).json({ error: 'recorded_at 格式无效' });
+  const result = db.prepare('UPDATE instant_records SET recorded_at = ? WHERE id = ? AND family_id = ?')
+    .run(recorded_at, req.params.id, req.familyId);
+  if (result.changes === 0) return res.status(404).json({ error: '记录不存在' });
+  res.json({ success: true });
+});
+
+app.patch('/api/duration/:id/time', auth, (req, res) => {
+  const { started_at, ended_at } = req.body;
+  const record = db.prepare('SELECT * FROM duration_records WHERE id = ? AND family_id = ?').get(req.params.id, req.familyId);
+  if (!record) return res.status(404).json({ error: '记录不存在' });
+
+  const nextStarted = started_at !== undefined ? started_at : record.started_at;
+  const nextEnded = ended_at !== undefined ? ended_at : (record.ended_at || '');
+
+  if (!nextStarted) return res.status(400).json({ error: 'started_at 不能为空' });
+  const startDate = new Date(nextStarted);
+  if (isNaN(startDate.getTime())) return res.status(400).json({ error: 'started_at 格式无效' });
+
+  let durationMinutes = 0;
+  if (nextEnded) {
+    const endDate = new Date(nextEnded);
+    if (isNaN(endDate.getTime())) return res.status(400).json({ error: 'ended_at 格式无效' });
+    if (endDate.getTime() < startDate.getTime()) return res.status(400).json({ error: '结束时间不能早于开始时间' });
+    durationMinutes = Math.round(((endDate - startDate) / 1000 / 60) * 10) / 10;
+  }
+
+  db.prepare('UPDATE duration_records SET started_at = ?, ended_at = ?, duration_minutes = ? WHERE id = ? AND family_id = ?')
+    .run(nextStarted, nextEnded, durationMinutes, req.params.id, req.familyId);
+  res.json({ success: true, duration_minutes: durationMinutes });
+});
+
 // ========== 备注 API ==========
 app.patch('/api/instant/:id/note', auth, (req, res) => {
   const { note } = req.body;

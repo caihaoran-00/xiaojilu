@@ -62,6 +62,8 @@
     .note-actions { display: flex; gap: 8px; margin-top: 6px; }
     .note-suggestion { display: inline-flex; align-items: center; padding: 4px 8px; border-radius: 12px; font-size: 12px; color: #E91E63; background: #FFF0F5; border: 1px solid #F8BBD0; cursor: pointer; margin-bottom: 6px; }
     .note-suggestion-wrap { margin-bottom: 4px; }
+    .time-edit-btn { font-size: 12px; color: #999; cursor: pointer; margin-left: 6px; }
+    .time-edit-btn:active { color: #E91E63; }
     .active-event { background: linear-gradient(135deg, #FFF0F5, #FFE0EC); border: 2px solid #E91E63; animation: pulse-border 2s infinite; }
     @keyframes pulse-border { 0%, 100% { border-color: #E91E63; } 50% { border-color: #F48FB1; } }
     .timer { font-size: 28px; font-weight: 700; color: #E91E63; font-variant-numeric: tabular-nums; }
@@ -277,6 +279,22 @@
   </div>
 </div>
 
+<!-- 修改记录时间弹窗 -->
+<div class="modal-overlay" id="timeEditModal">
+  <div class="modal">
+    <div class="modal-title">修改事件时间</div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <input class="input" id="timeEditStartedAt" type="datetime-local" style="display:none;">
+      <input class="input" id="timeEditEndedAt" type="datetime-local" style="display:none;">
+      <div style="font-size:12px;color:#999;" id="timeEditHint"></div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:16px;">
+      <button class="btn btn-primary btn-block" onclick="submitTimeEdit()">保存</button>
+      <button class="btn btn-block" style="background:#f5f5f5;color:#999;" onclick="closeModal('timeEditModal')">取消</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ===== 全局状态 =====
 var API = '';
@@ -288,6 +306,7 @@ var refreshInterval = null;
 var pendingUpload = { type: '', id: 0 };
 var previewingImgId = 0;
 var editingId = null;
+var timeEditing = { recordType: '', id: 0, isDuration: false, hasEnded: false };
 var historyFilter = 'all';
 var customEvents = [];
 var manageMode = { instant: false, duration: false };
@@ -703,7 +722,7 @@ function renderInstantList(records) {
       html += '<div class="record-main">';
       html += '<div>';
       html += '<div style="font-size:15px;font-weight:600">' + getEmoji(r.event_type) + ' ' + r.event_label + '</div>';
-      html += '<div class="record-time">' + formatTime(r.recorded_at) + ' · <span class="record-by">' + r.recorded_by + '</span></div>';
+      html += '<div class="record-time">' + formatTime(r.recorded_at) + ' · <span class="record-by">' + r.recorded_by + '</span><span class="time-edit-btn" onclick="showTimeEditModal(\'instant\',' + r.id + ',\'' + toDatetimeLocalValue(r.recorded_at) + '\')">修改时间</span></div>';
       html += '</div>';
       html += '<div style="display:flex;align-items:center;gap:8px">';
       html += '<span style="font-size:13px;color:#E91E63">' + timeAgo(r.recorded_at) + '</span>';
@@ -808,7 +827,7 @@ function renderDurationList(allRecords, activeRecords) {
       html += '<div class="record-main">';
       html += '<div>';
       html += '<div style="font-size:15px;font-weight:600">' + getEmoji(r.event_type) + ' ' + r.event_label + '</div>';
-      html += '<div class="record-time">' + formatTime(r.started_at) + ' → ' + formatTime(r.ended_at) + '</div>';
+      html += '<div class="record-time">' + formatTime(r.started_at) + ' → ' + formatTime(r.ended_at) + '<span class="time-edit-btn" onclick="showTimeEditModal(\'duration\',' + r.id + ',\'' + toDatetimeLocalValue(r.started_at) + '\',\'' + toDatetimeLocalValue(r.ended_at) + '\')">修改时间</span></div>';
       html += '<div class="record-time">' + r.started_by + '开始 · ' + r.ended_by + '结束</div>';
       html += '</div>';
       html += '<div style="text-align:right">';
@@ -913,7 +932,7 @@ function renderHistory(instants, durations) {
     if (historyFilter !== 'all' && r.event_type !== historyFilter) return;
     all.push({ time: r.recorded_at, html:
       '<div class="record-item"><div class="record-main"><div><div style="font-weight:600">' + getEmoji(r.event_type) + ' ' + r.event_label + '</div>' +
-      '<div class="record-time">' + formatDate(r.recorded_at) + ' ' + formatTime(r.recorded_at) + ' · ' + r.recorded_by + '</div>' +
+      '<div class="record-time">' + formatDate(r.recorded_at) + ' ' + formatTime(r.recorded_at) + ' · ' + r.recorded_by + '<span class="time-edit-btn" onclick="showTimeEditModal(\'instant\',' + r.id + ',\'' + toDatetimeLocalValue(r.recorded_at) + '\')">修改时间</span></div>' +
       '</div><span class="delete-btn" onclick="deleteInstant(' + r.id + ')">×</span></div>' +
       renderNoteSection('instant', r) +
       renderThumbs(r.images, 'instant', r.id) + '</div>'
@@ -926,7 +945,7 @@ function renderHistory(instants, durations) {
     var who = r.started_by + (r.ended_by ? ' → ' + r.ended_by : '');
     all.push({ time: r.started_at, html:
       '<div class="record-item"><div class="record-main"><div><div style="font-weight:600">' + getEmoji(r.event_type) + ' ' + r.event_label + ' ' + status + '</div>' +
-      '<div class="record-time">' + formatDate(r.started_at) + ' ' + timeRange + '</div>' +
+      '<div class="record-time">' + formatDate(r.started_at) + ' ' + timeRange + '<span class="time-edit-btn" onclick="showTimeEditModal(\'duration\',' + r.id + ',\'' + toDatetimeLocalValue(r.started_at) + '\',\'' + toDatetimeLocalValue(r.ended_at || '') + '\')">修改时间</span></div>' +
       '<div class="record-time">' + who + '</div>' +
       '</div><span class="delete-btn" onclick="deleteDuration(' + r.id + ')">×</span></div>' +
       renderNoteSection('duration', r) +
@@ -1004,6 +1023,91 @@ function formatTime(isoStr) {
 function formatDate(isoStr) {
   var d = new Date(isoStr);
   return (d.getMonth() + 1) + '月' + d.getDate() + '日';
+}
+
+function toDatetimeLocalValue(isoStr) {
+  if (!isoStr) return '';
+  var d = new Date(isoStr);
+  if (isNaN(d.getTime())) return '';
+  var year = d.getFullYear();
+  var month = String(d.getMonth() + 1).padStart(2, '0');
+  var day = String(d.getDate()).padStart(2, '0');
+  var hour = String(d.getHours()).padStart(2, '0');
+  var minute = String(d.getMinutes()).padStart(2, '0');
+  return year + '-' + month + '-' + day + 'T' + hour + ':' + minute;
+}
+
+function localDatetimeToISO(localValue) {
+  if (!localValue) return '';
+  var d = new Date(localValue);
+  if (isNaN(d.getTime())) return '';
+  return toLocalISO(d);
+}
+
+function showTimeEditModal(recordType, id, startedAtLocal, endedAtLocal) {
+  timeEditing.recordType = recordType;
+  timeEditing.id = id;
+  timeEditing.isDuration = recordType === 'duration';
+  timeEditing.hasEnded = !!endedAtLocal;
+
+  var startedInput = document.getElementById('timeEditStartedAt');
+  var endedInput = document.getElementById('timeEditEndedAt');
+  var hint = document.getElementById('timeEditHint');
+
+  if (recordType === 'instant') {
+    startedInput.style.display = 'block';
+    startedInput.value = startedAtLocal || '';
+    startedInput.placeholder = '发生时间';
+    endedInput.style.display = 'none';
+    endedInput.value = '';
+    hint.textContent = '修改后将按新的发生时间排序显示';
+  } else {
+    startedInput.style.display = 'block';
+    startedInput.value = startedAtLocal || '';
+    endedInput.style.display = 'block';
+    endedInput.value = endedAtLocal || '';
+    endedInput.placeholder = '结束时间（进行中可留空）';
+    hint.textContent = '持续事件可同时修改开始和结束时间';
+  }
+
+  document.getElementById('timeEditModal').classList.add('show');
+}
+
+function submitTimeEdit() {
+  var startedVal = document.getElementById('timeEditStartedAt').value;
+  var endedVal = document.getElementById('timeEditEndedAt').value;
+  var startedISO = localDatetimeToISO(startedVal);
+  var endedISO = localDatetimeToISO(endedVal);
+
+  if (!startedISO) {
+    showToast('请输入有效时间');
+    return;
+  }
+
+  if (timeEditing.recordType === 'instant') {
+    api('PATCH', '/api/instant/' + timeEditing.id + '/time', { recorded_at: startedISO }).then(function() {
+      closeModal('timeEditModal');
+      showToast('时间已更新 ✓');
+      loadData();
+      if (document.getElementById('historyPage').classList.contains('active')) loadHistory();
+    });
+    return;
+  }
+
+  if (endedISO && new Date(endedISO).getTime() < new Date(startedISO).getTime()) {
+    showToast('结束时间不能早于开始时间');
+    return;
+  }
+
+  api('PATCH', '/api/duration/' + timeEditing.id + '/time', {
+    started_at: startedISO,
+    ended_at: endedISO || ''
+  }).then(function() {
+    closeModal('timeEditModal');
+    showToast('时间已更新 ✓');
+    loadData();
+    if (document.getElementById('historyPage').classList.contains('active')) loadHistory();
+  });
 }
 
 function timeAgo(isoStr) {
